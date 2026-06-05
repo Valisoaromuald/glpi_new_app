@@ -1,19 +1,23 @@
 <script lang="ts" setup>
+import { useRedirect } from '@/composables/useRedirect';
 import GlpiOAuthService from '@/services/authentication/GlpiOAuthService';
 import axios from 'axios';
 import { ref } from 'vue';
 import { useRouter } from 'vue-router';
 
 
-const errorMessage = ref<string>('')
+const errorMessage = ref<string>('');
+const { to } = useRedirect()
 const login = defineModel<string>('login', { type: String })
 const password = defineModel<string>('password', { type: String })
 const glpiOAuthService = new GlpiOAuthService()
-const router = useRouter(); 
 const handleLogin = async (): Promise<any> => {
     try {
         if (login.value && password.value) {
-            return await glpiOAuthService.login(login.value, password.value)
+            const response = await glpiOAuthService.login(login.value, password.value)
+            if (Object.keys(response).length !== 0) {
+                redirectAfterLogin()
+            }
         }
         else {
             throw new Error("login et password requis");
@@ -46,7 +50,9 @@ const handleLogin = async (): Promise<any> => {
 
         console.error("Détails de l'erreur interceptée :", error);
     }
-
+}
+const redirectAfterLogin = (): void => {
+    to('/backoffice/home')
 }
 
 </script>
@@ -77,7 +83,7 @@ const handleLogin = async (): Promise<any> => {
                         class="border border-gray-300 rounded-lg px-4 py-2 text-sm focus:ring-2 focus:ring-blue-500" />
                 </div>
 
-                <button type="submit" class="bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700">
+                <button type="submit" class="bg-gray-950 text-white py-2 rounded-lg ">
                     Se connecter
                 </button>
 
