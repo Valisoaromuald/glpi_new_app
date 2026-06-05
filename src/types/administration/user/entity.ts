@@ -1,0 +1,42 @@
+export interface Entity {
+    id: 0,
+    name: string,
+    comment: string,
+    completename: string,
+    parent: Partial<Entity>,
+    level:number,
+    registration_number: string,
+    address: string,
+    postcode: string,
+    city: string,
+    state: string,
+    country: string,
+    latitude: string,
+    longitude: string,
+    altitude: string,
+    website: string,
+    phone: string,
+    fax: string,
+    email: string,
+    admin_email: string,
+    admin_email_name: string,
+    from_email: string,
+    from_email_name: string,
+    noreply_email: string,
+    noreply_email_name: string,
+    replyto_email: string,
+    replyto_email_name: string,
+    notification_subject_tag: string,
+    ldap_dn: string,
+    tag: string,
+    aauthldap: Partial<{
+        id: number; 
+        name: string;
+    }>;
+    mail_domain: string,
+    entity_ldapfilter: string,
+    mailing_signature: string,
+    url_base: string,
+    date_creation: string,
+    date_mod: string
+}
