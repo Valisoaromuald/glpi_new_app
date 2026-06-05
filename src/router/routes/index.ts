@@ -4,7 +4,7 @@ import { backofficeRoutes } from './pages.backoffice.routes'
 
 
 export const routes: RouteRecordRaw[] = [
-  { path: '/', name: 'accueil',component:()=>import('@/views/login/LoginView.vue') },
+  // { path: '/', name: 'accueil',component:()=>import('@/views/login/LoginView.vue') },
   ...authRoutes,
   ...backofficeRoutes
 ]
