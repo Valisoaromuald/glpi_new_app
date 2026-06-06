@@ -1,0 +1,22 @@
+[x] : Affichage
+    [x] :BackofficeDashBoard
+      [x] : refs : 
+            [x] : pour les details d'elements
+            [x] : pour les details de ticket
+
+        [x] : computed : 
+            [x] : getAssetsTotalNumber : somme des nombres de tous les elements 
+            [x] : getTicketsTotalNumber: somme de tous les tickets
+    
+    [x] : ElementCard
+        [x] : refs :
+            [x] : icon,text,count,backgroundColor 
+
+[x] : Metier
+    [x] :assetService: 
+        [x] : getTotalByElementByName(elementName) 
+    [x] : ticketService: 
+        [x] :  getTotalByType(typeId)
+
+
+[ ] : integration :
