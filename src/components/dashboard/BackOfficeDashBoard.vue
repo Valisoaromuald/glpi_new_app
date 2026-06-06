@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import AssetService from '@/services/administration/assetService.ts';
+import AssetService from '@/services/assets/assetService.ts';
 import ElementCard from '../administration/ElementCard.vue';
 import { computed, onMounted, ref } from 'vue';
 import TicketService from '@/services/assistance/ticketService.ts';
