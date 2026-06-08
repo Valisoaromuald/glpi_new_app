@@ -13,7 +13,7 @@ import { useGlpiScope } from "../composables/useGlpiScope";
  *
  *  Auth :
  *   - v2 utilise Bearer token (OAuth2)
- *   - v1 utilise Session-Token (obtenu via initSessionV1)
+ *   - v1 utilise session_token (obtenu via initSessionV1)
  * ============================================================
  */
 
@@ -22,7 +22,7 @@ import { useGlpiScope } from "../composables/useGlpiScope";
 class GlpiApi {
     // ── Instances Axios ──────────────────────────────────────
     private apiV2: AxiosInstance;  // Bearer token  →  /api.php/v2
-    private apiV1: AxiosInstance;  // Session-Token →  /apirest.php
+    private apiV1: AxiosInstance;  // session_token →  /apirest.php
 
     // ── Config ───────────────────────────────────────────────
     private baseUrlV2 = import.meta.env.VITE_GLPI_BASE_URL_V2;   // ex: https://glpi.example.com/api.php/v2
@@ -98,18 +98,24 @@ class GlpiApi {
     }
 
     // ════════════════════════════════════════════════════════
-    //  INTERCEPTEURS V1  (Session-Token)
+    //  INTERCEPTEURS V1  (session_token)
     // ════════════════════════════════════════════════════════
     private initInterceptorsV1() {
         this.apiV1.interceptors.request.use(
             (config: InternalAxiosRequestConfig) => {
-                if (localStorage.getItem("session_token") && config.headers) {
-                    config.headers["Session-Token"] = localStorage.getItem("session_token");;
+                const sessionToken = localStorage.getItem("session_token");
+
+                if (config.headers) {
+                    // Correction : GLPI attend "Session-Token"
+                    if (sessionToken) {
+                        config.headers["Session-Token"] = sessionToken;
+                    }
+                    // Correction : GLPI attend "App-Token"
+                    if (this.appToken) {
+                        config.headers["app_token"] = this.appToken;
+                    }
+                    config.headers["Content-Type"] = "application/json";
                 }
-                if (this.appToken && config.headers) {
-                    config.headers["App-Token"] = this.appToken;
-                }
-                config.headers["Content-Type"] = "application/json";
                 return config;
             },
             (error) => Promise.reject(error)
@@ -121,17 +127,30 @@ class GlpiApi {
                 const originalRequest = error.config;
                 const status = error.response?.status;
 
+                // GLPI renvoie parfois un statut 200 ou 400 avec le message d'erreur dans les données
+                // au lieu d'un vrai statut HTTP 401. Sécurisons la détection :
+                const isSessionMissing = error.response?.data &&
+                    Array.isArray(error.response.data) &&
+                    error.response.data[0] === "ERROR_SESSION_TOKEN_MISSING";
 
-                // Session v1 expirée → on la renouvelle automatiquement
-                if (status === 401 && !originalRequest._retryV1) {
+                // Session v1 expirée ou manquante → on la renouvelle automatiquement
+                if ((status === 401 || isSessionMissing) && !originalRequest._retryV1) {
                     originalRequest._retryV1 = true;
                     try {
+                        console.info("[GlpiApi] Session manquante ou expirée. Tentative de renouvellement...");
+
                         const username = import.meta.env.VITE_GLPI_USERNAME;
                         const password = import.meta.env.VITE_GLPI_PASSWORD;
+
+                        // On recrée la session
                         await this.initSessionV1(username, password);
+
+                        // On applique le nouveau token à la requête qui avait échoué
                         if (originalRequest.headers) {
                             originalRequest.headers["Session-Token"] = localStorage.getItem("session_token");
                         }
+
+                        // On rejoue la requête initiale
                         return this.apiV1(originalRequest);
                     } catch (sessionError) {
                         console.error("Impossible de renouveler la session v1.", sessionError);
@@ -143,7 +162,6 @@ class GlpiApi {
             }
         );
     }
-
     // ════════════════════════════════════════════════════════
     //  GESTION DE SESSION V1
     // ════════════════════════════════════════════════════════
@@ -157,12 +175,12 @@ class GlpiApi {
         const response = await axios.get(`${this.baseUrlV1}/initSession`, {
             headers: {
                 Authorization: `Basic ${credentials}`,
-                "App-Token": this.appToken,
+                "app_token": this.appToken,
             },
         });
 
         this.sessionTokenV1 = response.data.session_token;
-         localStorage.setItem("session_token",this.sessionTokenV1?? ''); 
+        localStorage.setItem("session_token", this.sessionTokenV1 ?? '');
         console.info("[GlpiApi] Session v1 initiée.");
         this.apiV1.defaults.headers.common["Session-Token"] = localStorage.getItem("session_token");
     }
@@ -187,7 +205,7 @@ class GlpiApi {
         if (!refreshToken) throw new Error("Aucun refresh token disponible.");
 
         const { glpiScopes } = useGlpiScope();
-        const params = new  URLSearchParams();
+        const params = new URLSearchParams();
         params.append("grant_type", "refresh_token");
         params.append("refresh_token", refreshToken);
         params.append("client_id", this.clientId);
@@ -254,11 +272,11 @@ class GlpiApi {
     }
 
     // ════════════════════════════════════════════════════════
-    //  MÉTHODES V1  (Session-Token)
+    //  MÉTHODES V1  (session_token)
     // ════════════════════════════════════════════════════════
 
     public async getV1<T = any>(endpoint: string, params: any = {}): Promise<AxiosResponse<T>> {
-        
+
         return this.apiV1.get<T>(endpoint, { params });
     }
 
