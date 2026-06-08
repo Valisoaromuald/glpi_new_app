@@ -1,5 +1,7 @@
 import { glpiApi } from "@/api/GlpiApi"
 import type { Asset } from "@/types/asset/asset";
+import type { AssetModel } from "@/types/asset/assetModel";
+import type { AssetType } from "@/types/asset/assetType";
 import { translations, V1_ONLY_ITEMTYPES, type V1OnlyItemtype } from "@/utils/assetUtil";
 import PromiseUtil from "@/utils/promiseUtil";
 /**
@@ -215,7 +217,7 @@ export default class AssetService {
 
         // 3. Attente de la résolution de toutes les requêtes
         const array2D = await Promise.all(promises);
-        const real2DArray :Array<Array<number>>= []
+        const real2DArray: Array<Array<number>> = []
         for (let result of array2D) {
 
             const data = Object.values(result)[0] || []
@@ -229,47 +231,41 @@ export default class AssetService {
             ids: real2DArray
         };
     }
-    async deleteAll(){
-        try {
-            const idsAndHrefsV1 = await this.getIdsAndHrefsV1();
-            const idsAndHrefsV2 = await this.getIdsAndHrefsV2();
-            const deletionPromisesV1 : Promise<any>[]= []
-            const deletionPromisesV2 : Promise<any>[]= []
-            for(let i=0; i<idsAndHrefsV1.hrefs.length;i++){
-                const href = idsAndHrefsV1.hrefs[i] ?? ""
-                if( idsAndHrefsV1.ids[i] &&  idsAndHrefsV1.ids[i]?.length !== 0){
-                    const ids = idsAndHrefsV1.ids[i] ?? []
-                    if(ids && ids.length >0){
-                        const limit = ids?.length ?? 0
-                        for(let j= 0; j < limit;j++){
-                                deletionPromisesV1.push(this.deleteAssetV1(href,ids[j] ?? 0,true))
-                        }
-                    }
-                }
+    // Pour les modèles simples (Printer, Monitor, Phone, Peripheral, Device*)
+    createSimpleModelObject(assetModel: Partial<AssetModel>): Object {
+        return {
+            input: {
+                name: assetModel.name,
+                comment: assetModel.comment,
+                product_number: assetModel.product_number,
             }
-            for(let i=0; i<idsAndHrefsV2.hrefs.length;i++){
-                const href = idsAndHrefsV2.hrefs[i] ?? ""
-                if( idsAndHrefsV1.ids[i] &&  idsAndHrefsV2.ids[i]?.length !== 0){
-                    const ids = idsAndHrefsV2.ids[i] ?? []
-                    if(ids && ids.length >0){
-                        const limit = ids?.length ?? 0
-                        for(let j= 0; j < limit;j++){
-                                deletionPromisesV2.push(glpiApi.delete(href+`/${ids[j]}?force=true`))
-                        }
-                    }
-                }
-            }
-            const pas = 20
-            const maxLength = Math.max(deletionPromisesV1.length,deletionPromisesV2.length)
-            for(let i = 0; i < maxLength; i+=pas){
-                const subDeletionPromisesV1 = deletionPromisesV1.slice(i,i+pas)
-                const subDeletionPromisesV2 = deletionPromisesV2.slice(i,i+pas)
-                let  set  = [...subDeletionPromisesV1,...subDeletionPromisesV2]
-                return await Promise.all(set) 
-            }   
+        };
+    }
 
-        } catch (error) {
-            throw error
+    // Pour les modèles DC/rack (Computer serveur, NetworkEquipment, Rack, PDU...)
+    createDCModelObject(assetModel: Partial<AssetModel>): Object {
+        return {
+            input: {
+                name: assetModel.name,
+                comment: assetModel.comment,
+                product_number: assetModel.product_number,
+                weight: assetModel.weight,
+                required_units:  1,
+                depth: assetModel.depth,
+                power_connections: assetModel.power_connections,
+                power_consumption: assetModel.power_consumption,
+                is_half_rack: assetModel.is_half_rack ?? 0,
+                picture_front: assetModel.picture_front ?? null,
+                picture_rear: assetModel.picture_rear ?? null,
+            }
+        };
+    }
+    createTypeObject(assetType: Partial<AssetType>): Object {
+        return {
+            input: {
+                name: assetType.name,
+                comment: assetType.comment
+            }
         }
     }
 }

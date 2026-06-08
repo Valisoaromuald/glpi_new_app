@@ -1,13 +1,9 @@
 import { glpiApi } from "@/api/GlpiApi";
 import PromiseUtil from "@/utils/promiseUtil";
 
-export default class stateService {
-    private readonly subEndPoint = 'State'
-    private readonly endPointPrefix = `/DropDowns/${this.subEndPoint}`
-
+export default class StateService {
     static createObject(stateValue: string): Object {
         return {
-            input: {
                 name: stateValue,
                 entities_id: 0,
                 is_recursive: 1,
@@ -18,7 +14,6 @@ export default class stateService {
                 is_visible_printer: 1,
                 is_visible_phone: 1,
                 comment: ""
-            }
         }
     }
 }

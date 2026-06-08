@@ -178,7 +178,7 @@ function handleCancel(): void {
         <h2 class="text-sm font-semibold text-gray-900 dark:text-gray-100 leading-tight">
           {{ props.title }}
         </h2>
-        <p class="text-xs text-gray-400 dark:text-gray-500 mt-0.5">
+        <p class="text-xs text-white  mt-0.5">
           {{ props.accept || 'Tous types de fichiers' }} · max {{ props.maxSizeMb }} Mo
           <template v-if="props.multiple"> · {{ props.maxFiles }} fichiers max</template>
         </p>

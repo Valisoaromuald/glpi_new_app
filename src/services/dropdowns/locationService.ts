@@ -41,14 +41,12 @@ export default class LocationService {
             throw error;
         }
     }
-    static createObject(nameValue: string): Object {
+    static createObject(name:string): Object {
         return {
-            input: {
-                name: nameValue,
+                name: name,
                 entities_id: 0,
                 is_recursive: 1,
                 comment: ""
-            }
         }
     }
 }
