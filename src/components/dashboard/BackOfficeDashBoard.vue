@@ -14,16 +14,28 @@
         for (let detail of globalAssetsDetails.value) {
             result += detail.count
         }
+        console.log("result: ", result)
         return result;
     })
 
     const getTicketsTotalNumber = computed(() => {
         return incidentsNumber.value + requestsNumber.value;
     })
-    const ticketsLabel = 'Ticket' + (getTicketsTotalNumber.value > 1 ? 's' : '')
-    const totalAssetsLabel = 'Equipement' + (getAssetsTotalNumber.value > 1 ? 's' : '')
-    const incidentsLabel = 'Incident' + (incidentsNumber.value > 1 ? 's' : '')
-    const requestsLabel = 'Demande' + (requestsNumber.value > 1 ? 's' : '') + ' de service'
+    const totalAssetsLabel = computed(() =>
+        'Equipement' + (getAssetsTotalNumber.value > 1 ? 's' : '')
+    )
+
+    const ticketsLabel = computed(() =>
+        'Ticket' + (getTicketsTotalNumber.value > 1 ? 's' : '')
+    )
+
+    const incidentsLabel = computed(() =>
+        'Incident' + (incidentsNumber.value > 1 ? 's' : '')
+    )
+
+    const requestsLabel = computed(() =>
+        'Demande' + (requestsNumber.value > 1 ? 's' : '') + ' de service'
+    )
     onMounted(async () => {
         const assetService = new AssetService();
         const ticketService = new TicketService();

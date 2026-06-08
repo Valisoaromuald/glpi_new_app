@@ -62,7 +62,7 @@ const handleLogout = () => {
           </svg>
           <span class="hidden sm:inline">Déconnexion</span>
         </button>
-        
+
       </nav>
     </aside>
 
@@ -77,8 +77,10 @@ const handleLogout = () => {
       </header>
 
       <!-- PAGE -->
-      <main class=" w-full flex-1 overflow-auto p-6">
-        <router-view />
+      <main class="w-full flex-1 overflow-auto p-4 sm:p-6">
+        <div class="max-w-7xl mx-auto w-full">
+          <router-view />
+        </div>
       </main>
 
     </div>
