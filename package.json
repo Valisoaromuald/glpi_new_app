@@ -13,6 +13,9 @@
   "dependencies": {
     "@tailwindcss/vite": "^4.3.0",
     "axios": "^1.16.1",
+    "buffer": "^6.0.3",
+    "csv-parse": "^6.2.1",
+    "stream-browserify": "^3.0.0",
     "tailwindcss": "^4.3.0",
     "vue": "beta",
     "vue-router": "^5.0.4"

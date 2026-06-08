@@ -14,13 +14,21 @@ export default defineConfig({
     vueDevTools(),
     tailwindcss()
   ],
+  optimizeDeps: {
+    include: ["csv-parse/sync"],
+  },
   resolve: {
     alias: {
-      '@': fileURLToPath(new URL('./src', import.meta.url))
+      '@': fileURLToPath(new URL('./src', import.meta.url)),
+      // Polyfills Node.js pour le navigateur
+      stream: "stream-browserify",
+      buffer: "buffer",
     },
+    
   },
   server: {
     proxy: {
+    
       '/api.php': {
         target: 'http://localhost',
         changeOrigin: true,
@@ -31,7 +39,17 @@ export default defineConfig({
             console.log('proxy error', err);
           });
         }
-      }
+      },
+      '/apirest.php': {
+        target: 'http://localhost',
+        changeOrigin: true,
+        secure: false,
+        configure: (proxy, _options) => {
+          proxy.on('error', (err, _req, _res) => {
+            console.log('proxy error', err);
+          });
+        }
+      },
     }
   }
 })
