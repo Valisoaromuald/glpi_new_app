@@ -24,7 +24,7 @@ export const backofficeRoutes: RouteRecordRaw[] = [
       {
         path: 'import',
         name: 'ImportCsv',
-        component: () => import('@/components/import/ImportCard.vue'),
+        component: () => import('@/views/import/DataImport.vue'),
         meta: { requiresAdmin: true }
       },
       {
