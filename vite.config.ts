@@ -14,15 +14,10 @@ export default defineConfig({
     vueDevTools(),
     tailwindcss()
   ],
-  optimizeDeps: {
-    include: ["csv-parse/sync"],
-  },
   resolve: {
     alias: {
       '@': fileURLToPath(new URL('./src', import.meta.url)),
-      // Polyfills Node.js pour le navigateur
-      stream: "stream-browserify",
-      buffer: "buffer",
+      
     },
     
   },
