@@ -11,7 +11,7 @@ export const RESOURCES_TO_RESET = [
   { name: 'Appliances',   endpoint: '/Assets/Appliance' },
   { name: 'NetworkEquipment', endpoint: '/Assets/NetworkEquipment' },
   { name: 'PassiveDCEquipments', endpoint: '/Assets/PassiveDCEquipment' },
-  { name: 'Sockets', endpoint: '/Assets/Sockets' },
+  { name: 'Sockets', endpoint: '/Assets/Socket' },
   { name: 'Printers',         endpoint: '/Assets/Printer' },
   { name: 'Phones',           endpoint: '/Assets/Phone' },
   { name: 'Peripherals',      endpoint: '/Assets/Peripheral' },
