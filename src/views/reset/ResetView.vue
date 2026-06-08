@@ -1,35 +1,69 @@
 <script setup lang="ts">
-import ComputerService from '@/services/assets/computerService';
+import Log from '@/components/reset/Log.vue';
+import UserService from '@/services/administration/userService';
+import AssetService from '@/services/assets/assetService';
+import DataResetService from '@/services/database/resetService';
 import { onMounted, ref } from 'vue';
 
 const ids = ref<number[]>([])
 const computerId = defineModel<number>('computerId', { required: true, default: 0 })
+const idsAndHrefs = ref<{ hrefs: string[], ids: number[][] }>({ hrefs: [], ids: [] })
+
+const logs = ref<string>('')
+const isResetting = ref(false)
 
 onMounted(async () => {
-  const computerService = new ComputerService();
-  ids.value = await computerService.getAllIds()
+  const userService = new UserService();
+  const assetService = new AssetService();
+  idsAndHrefs.value = await assetService.getIdsAndHrefsV2();
+  ids.value = await userService.getAllIdsDifferentFromDefaultIds()
 })
 
-async function deleteByComputerId(id: number | string) {
-  const computerService = new ComputerService();
+async function deleteById(id: number | string) {
+  const userService = new UserService();
+  const assetService = new AssetService();
   try {
     if (id !== 0) {
-      return computerService.deleteById(id)
-    }
-    else {
-      return computerService.deleteAll()
+      return userService.deleteById(id)
+    } else {
+      return assetService.deleteAll()
     }
   } catch (error) {
     throw error;
   }
 }
+
+async function handleReset() {
+  isResetting.value = true
+  const resetService = new DataResetService()
+  logs.value = ''
+  try { 
+    await resetService.resetDatabase( (resource: string, done: number, total: number) => {
+      if(done !== 0 && total!== 0){
+        const percent = Math.round((done / total) * 100)
+        const bar = '█'.repeat(Math.floor(percent / 10)) + '░'.repeat(10 - Math.floor(percent / 10))
+        logs.value += `\n[${bar}] ${resource.padEnd(20)} ${done}/${total} (${percent}%)`
+      }
+      else{
+        const bar = '█'.repeat(Math.floor( 100/ 10))
+        logs.value += `\n[${bar}] ${resource.padEnd(20)} ${done}/${total} (${100}%)`
+      }
+    })
+    logs.value += '\n\n✓ Réinitialisation terminée avec succès.'
+  } catch (error) {
+    console.error(error);
+    logs.value += `\n\n✗ Erreur : ${error}`
+  } finally {
+    isResetting.value = false
+  }
+}
 </script>
 
 <template>
-  <div class="max-w-lg">
+  <div class="max-w-lg space-y-4">
 
+    <!-- Carte d'avertissement -->
     <div class="bg-white rounded-xl border border-gray-200 p-6">
-
       <div class="flex items-start gap-3 mb-6">
         <div class="w-9 h-9 rounded-lg bg-red-100 flex items-center justify-center shrink-0">
           <svg class="w-5 h-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -46,19 +80,40 @@ async function deleteByComputerId(id: number | string) {
         </div>
       </div>
 
-      <ul class="mb-4">
-        <li v-for="id in ids" :key="id" class="text-sm text-gray-600 list-disc list-inside">
-          ID Ordinateur : {{ id }}
-        </li>
-      </ul>
-      <form @submit.prevent="deleteByComputerId(computerId)">
-        <label>
-
-          <input type="number" v-model="computerId">
-        </label>
-        <button type="submit">supprimer</button>
-      </form>
-
+      <!-- Bouton reset -->
+      <button
+        type="button"
+        :disabled="isResetting"
+        class="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg bg-red-600 hover:bg-red-700 disabled:bg-red-300 text-white text-sm font-medium transition-colors"
+        @click="handleReset"
+      >
+        <svg
+          class="w-4 h-4"
+          :class="{ 'animate-spin': isResetting }"
+          fill="none" stroke="currentColor" viewBox="0 0 24 24"
+        >
+          <path v-if="!isResetting" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6M9 7h6m2 0H7m2-3h6a1 1 0 011 1v1H8V5a1 1 0 011-1z" />
+          <path v-else stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+        </svg>
+        {{ isResetting ? 'Réinitialisation en cours...' : 'Réinitialiser la base de données' }}
+      </button>
     </div>
+
+    <!-- Formulaire suppression individuelle -->
+    <div class="bg-white rounded-xl border border-gray-200 p-6">
+      <form @submit.prevent="deleteById(computerId)">
+        <label class="block text-sm text-gray-700 mb-1">ID à supprimer</label>
+        <input type="number" v-model="computerId" class="border border-gray-300 rounded-lg px-3 py-2 text-sm w-full mb-3" />
+        <button type="submit" class="px-4 py-2 bg-gray-800 text-white text-sm rounded-lg hover:bg-gray-700 transition-colors">
+          Supprimer
+        </button>
+      </form>
+    </div>
+
+    <!-- Terminal Log.vue — visible dès qu'on a des logs -->
+    <Log v-if="logs || isResetting" :logs="logs" />
+
   </div>
 </template>
