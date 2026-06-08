@@ -16,15 +16,15 @@ export interface Computer{
     is_recursive: true,
     manufacturer: {
       id: number,
-      name: string
+      name?: string
     },
     user: {
       id: number,
-      name: string
+      name?: string
     },
     user_tech:  {
-      id: number,
-      name: string
+      id?: number,
+      name?: string
     },
     contact: string,
     contact_num: string,
@@ -35,15 +35,15 @@ export interface Computer{
     date_mod: string,
     location: {
       id: number,
-      name: string
+      name?: string
     },
     type: {
       id: number,
-      name: string
+      name?: string
     },
     model: {
-      id: number,
-      name: string
+      id?: number,
+      name?: string
     },
     group: Array<
       {

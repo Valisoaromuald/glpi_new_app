@@ -1,4 +1,5 @@
 import { glpiApi } from "@/api/GlpiApi";
+import type { User } from "@/types/administration/user/user";
 import PromiseUtil from "@/utils/promiseUtil";
 
 export default class UserService {
@@ -40,20 +41,19 @@ export default class UserService {
             throw error;
         }
     }
-    static createObject(name : string,realName: string,firstname: string,password: string,entities_id:number=1,profiles_id:number=4,email:string) :Object {
-        return {
-            input: {
-                name: name,
-                realname:realName,
-                firstname: firstname,
-                password:password,
-                password2:password,
-                entities_id: entities_id,
-                profiles_id: profiles_id,
-                is_active: 1,
-                email: email,
-                comment: ""
+    static createObject(user: Partial<User>): Object {
+        if (user.firstname && user.realname) {
+            return {
+                name: user.realname.toLowerCase().trim(),
+                username: user.firstname?.trim(),
+                realname: user.realname,
+                firstname: user.firstname,
+                password: "glpi",
             }
         }
+        else {
+            return {}
+        }
     }
+
 }

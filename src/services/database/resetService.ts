@@ -14,7 +14,7 @@ export default class DataResetService {
             const response = await glpiApi.get(endpoint);
             if (response) {
                 const items = await response.data;
-                if(items){
+                if (items) {
                     items.forEach((item: { id: number }) => ids.push(item.id));;
                 }
             }
@@ -39,20 +39,31 @@ export default class DataResetService {
     async resetDatabase(
         onProgress?: (resource: string, done: number, total: number) => void
     ): Promise<void> {
-        const pas: number = 20;
+        const pas: number = 2;
         for (const resource of RESOURCES_TO_RESET) {
             const allIds = await this.getAllIds(resource.endpoint);
-            if(allIds.length !==0){
+            let done = 0;
+            if (allIds.length !== 0) {
                 const protectedIds = resource.protectedIds ?? [];
                 const toDelete = allIds.filter(id => !protectedIds.includes(id));
-                for (let i = 0; i < toDelete.length; i += pas) {
-                    const subIds: number[] = toDelete.slice(i, i + pas);
-                    const promises: Promise<any>[] = PromiseUtil.buildPromises<number, any>(subIds, id => this.deleteById(resource.endpoint, id));
-                    await Promise.all(promises)
-                    onProgress?.(resource.name, i + 1, toDelete.length);
+
+                // ← Cas où tout est protégé
+                if (toDelete.length === 0) {
+                    onProgress?.(resource.name, 0, 0);
+                    continue;
                 }
-            }
-            else{
+
+                let done = 0;
+                for (let i = 0; i < toDelete.length; i += pas) {
+                    const subIds = toDelete.slice(i, i + pas);
+                    const promises = PromiseUtil.buildPromises<number, any>(
+                        subIds, id => this.deleteById(resource.endpoint, id)
+                    );
+                    await Promise.all(promises);
+                    done += subIds.length;
+                    onProgress?.(resource.name, done, toDelete.length);
+                }
+            } else {
                 onProgress?.(resource.name, 0, 0);
             }
         }

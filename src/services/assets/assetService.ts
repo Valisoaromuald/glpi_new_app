@@ -2,7 +2,7 @@ import { glpiApi } from "@/api/GlpiApi"
 import type { Asset } from "@/types/asset/asset";
 import type { AssetModel } from "@/types/asset/assetModel";
 import type { AssetType } from "@/types/asset/assetType";
-import { translations, V1_ONLY_ITEMTYPES, type V1OnlyItemtype } from "@/utils/assetUtil";
+import { DC_MODELS, translations, V1_ONLY_ITEMTYPES, type V1OnlyItemtype } from "@/utils/assetUtil";
 import PromiseUtil from "@/utils/promiseUtil";
 /**
  * Types d'assets non exposés dans GET /Assets/ de la v2
@@ -232,7 +232,7 @@ export default class AssetService {
         };
     }
     // Pour les modèles simples (Printer, Monitor, Phone, Peripheral, Device*)
-    createSimpleModelObject(assetModel: Partial<AssetModel>): Object {
+    static createSimpleModelObject(assetModel: Partial<AssetModel>): Object {
         return {
             input: {
                 name: assetModel.name,
@@ -243,29 +243,42 @@ export default class AssetService {
     }
 
     // Pour les modèles DC/rack (Computer serveur, NetworkEquipment, Rack, PDU...)
-    createDCModelObject(assetModel: Partial<AssetModel>): Object {
-        return {
-            input: {
-                name: assetModel.name,
-                comment: assetModel.comment,
-                product_number: assetModel.product_number,
-                weight: assetModel.weight,
-                required_units:  1,
-                depth: assetModel.depth,
-                power_connections: assetModel.power_connections,
-                power_consumption: assetModel.power_consumption,
-                is_half_rack: assetModel.is_half_rack ?? 0,
-                picture_front: assetModel.picture_front ?? null,
-                picture_rear: assetModel.picture_rear ?? null,
-            }
-        };
+    static createDCModelObject(assetModel: Partial<AssetModel>): Object {
+            return {
+                input: {
+                    name: assetModel.name,
+                    comment: assetModel.comment,
+                    product_number: assetModel.product_number,
+                    weight: assetModel.weight,
+                    required_units: 1,
+                    depth: assetModel.depth,
+                    power_connections: assetModel.power_connections,
+                    power_consumption: assetModel.power_consumption,
+                    is_half_rack: assetModel.is_half_rack ?? 0,
+                    picture_front: assetModel.picture_front ?? null,
+                    picture_rear: assetModel.picture_rear ?? null,
+                }
+            };
+        
     }
-    createTypeObject(assetType: Partial<AssetType>): Object {
-        return {
-            input: {
-                name: assetType.name,
-                comment: assetType.comment
+    static createModelObject(assetModel: Partial<AssetModel>, endpoint: string): Object {
+        if(assetModel.name){
+            if (DC_MODELS.includes(endpoint)) {
+                return AssetService.createDCModelObject(assetModel)
+            }
+            return AssetService.createSimpleModelObject(assetModel)
+        }
+        return {}
+    }
+    static createTypeObject(assetType: Partial<AssetType>): Object {
+        if(assetType.name){
+            return {
+                
+                    name: assetType.name,
+                    comment: assetType.comment
             }
         }
+        return{}
     }
+
 }

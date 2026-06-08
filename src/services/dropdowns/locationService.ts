@@ -42,11 +42,14 @@ export default class LocationService {
         }
     }
     static createObject(name:string): Object {
-        return {
-                name: name,
-                entities_id: 0,
-                is_recursive: 1,
-                comment: ""
+        if(name){
+            return {
+                    name: name,
+                    entities_id: 0,
+                    is_recursive: 1,
+                    comment: ""
+            }
         }
+        return{}
     }
 }

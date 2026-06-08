@@ -1,13 +1,14 @@
 import { glpiApi } from "@/api/GlpiApi";
+import type { Computer } from "@/types/asset/computer";
 import PromiseUtil from "@/utils/promiseUtil";
 
 export default class ComputerService {
-    private readonly subEndPoint ='Computer'
-     private readonly endPointPrefix = `/Assets/${this.subEndPoint}`
+    private readonly subEndPoint = 'Computer'
+    private readonly endPointPrefix = `/Assets/${this.subEndPoint}`
     async getAllIds(): Promise<number[]> {
         try {
             const endpoint = `query { ${this.subEndPoint} { id } }`;
-            const response = await glpiApi.graphql<{ Computer: { id: number | string }[]}>(endpoint);
+            const response = await glpiApi.graphql<{ Computer: { id: number | string }[] }>(endpoint);
             if (response.Computer) {
                 return response.Computer.map(computer => Number(computer.id));
             }
@@ -19,7 +20,7 @@ export default class ComputerService {
             throw error;
         }
     }
-    async deleteById(id: number | string):Promise<any>{
+    async deleteById(id: number | string): Promise<any> {
         try {
             const endpoint = `${this.endPointPrefix}/${id}?force=1`
             const response = await glpiApi.delete(endpoint)
@@ -28,17 +29,34 @@ export default class ComputerService {
             throw error;
         }
     }
-    async deleteAll(): Promise<void>{
-            const pas : number = 5;
-            try {
-                const ids : number[] = await this.getAllIds();
-                for(let i = 0 ; i < ids.length;i+=pas){
-                    const subIds : number[]= ids.slice(i,i+pas);
-                    const promises : Promise<any>[]= PromiseUtil.buildPromises<number,any>(subIds,id=> this.deleteById(id));
-                    await Promise.all(promises)
-                }
-            } catch (error) {
-                throw error;
+    async deleteAll(): Promise<void> {
+        const pas: number = 5;
+        try {
+            const ids: number[] = await this.getAllIds();
+            for (let i = 0; i < ids.length; i += pas) {
+                const subIds: number[] = ids.slice(i, i + pas);
+                const promises: Promise<any>[] = PromiseUtil.buildPromises<number, any>(subIds, id => this.deleteById(id));
+                await Promise.all(promises)
+            }
+        } catch (error) {
+            throw error;
+        }
+    }
+    static createObject(computer: Partial<Computer>): Object {
+        if (computer.name) {
+            return {
+                name: computer.name,
+                entities_id: 0,
+                otherserial: computer.otherserial,
+                states_id: 1,
+                locations_id: 1,
+                manufacturers_id: computer.manufacturer?.id ?? 0,
+                users_id: computer.user?.id ?? 0,
+                groups_id: 0,
+                comment: ""
+
             }
         }
+        return {}
+    }
 }

@@ -21,3 +21,13 @@ export const translations: Record<V1OnlyItemtype, string> = {
   PDU: "PDU",
   Cluster: "Cluster"
 };
+
+
+export const DC_MODELS = [
+    'ComputerModel',
+    'NetworkEquipmentModel', 
+    'RackModel',
+    'EnclosureModel',
+    'PDUModel',
+    'PassiveDCEquipmentModel'
+]
