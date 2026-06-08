@@ -7,11 +7,10 @@ export default class PeripheralService{
         async getAllIds(): Promise<number[]> {
             try {
                 const endpoint = `query { ${this.subEndPoint} { id } }`;
-                const response = await glpiApi.graphql<{ Computer: { id: number | string }[]}>(endpoint);
-                if (response.Computer) {
-                    return response.Computer.map(computer => Number(computer.id));
+                const response = await glpiApi.graphql<{ periherals: { id: number | string }[]}>(endpoint);
+                if (response.periherals) {
+                    return response.periherals.map(peripheral => Number(peripheral.id));
                 }
-    
                 return [];
             } catch (error) {
                 // Le "throw error" dans un bloc catch simple est redondant, 

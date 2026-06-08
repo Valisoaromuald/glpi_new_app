@@ -30,7 +30,7 @@ export default class PhoneService{
             }
         }
         async deleteAll(): Promise<void>{
-                const pas : number = 5;
+                const pas : number = 10;
                 try {
                     const ids : number[] = await this.getAllIds();
                     for(let i = 0 ; i < ids.length;i+=pas){

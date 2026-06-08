@@ -7,11 +7,10 @@ export default class PrinterService{
         async getAllIds(): Promise<number[]> {
             try {
                 const endpoint = `query { ${this.subEndPoint} { id } }`;
-                const response = await glpiApi.graphql<{ Computer: { id: number | string }[]}>(endpoint);
-                if (response.Computer) {
-                    return response.Computer.map(computer => Number(computer.id));
+                const response = await glpiApi.graphql<{ printers: { id: number | string }[]}>(endpoint);
+                if (response.printers) {
+                    return response.printers.map(printer => Number(printer.id));
                 }
-    
                 return [];
             } catch (error) {
                 // Le "throw error" dans un bloc catch simple est redondant, 

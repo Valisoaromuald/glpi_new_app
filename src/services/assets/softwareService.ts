@@ -7,9 +7,9 @@ export default class SoftwareService{
         async getAllIds(): Promise<number[]> {
             try {
                 const endpoint = `query { ${this.subEndPoint} { id } }`;
-                const response = await glpiApi.graphql<{ Computer: { id: number | string }[]}>(endpoint);
-                if (response.Computer) {
-                    return response.Computer.map(computer => Number(computer.id));
+                const response = await glpiApi.graphql<{ softwares: { id: number | string }[]}>(endpoint);
+                if (response.softwares) {
+                    return response.softwares.map(software => Number(software.id));
                 }
     
                 return [];

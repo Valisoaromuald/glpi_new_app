@@ -3,7 +3,7 @@ import PromiseUtil from "@/utils/promiseUtil";
 
 export default class TicketService {
     private readonly subEndPoint ='Ticket'
-     private readonly endPointPrefix = `/Assisance/${this.subEndPoint}`
+     private readonly endPointPrefix = `/Assistance/${this.subEndPoint}`
     async getTotalByType(typeId: number): Promise<number> {
         try {
             // En v2, l'endpoint imbriqué est correct

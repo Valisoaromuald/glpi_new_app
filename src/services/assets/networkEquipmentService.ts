@@ -7,9 +7,9 @@ export default class NetworkEquipmentService{
         async getAllIds(): Promise<number[]> {
             try {
                 const endpoint = `query { ${this.subEndPoint} { id } }`;
-                const response = await glpiApi.graphql<{ Computer: { id: number | string }[]}>(endpoint);
-                if (response.Computer) {
-                    return response.Computer.map(computer => Number(computer.id));
+                const response = await glpiApi.graphql<{ networkEquipments: { id: number | string }[]}>(endpoint);
+                if (response.networkEquipments) {
+                    return response.networkEquipments.map(ne => Number(ne.id));
                 }
     
                 return [];

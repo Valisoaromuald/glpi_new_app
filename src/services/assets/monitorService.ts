@@ -7,9 +7,9 @@ export default class MonitorService {
     async getAllIds(): Promise<number[]> {
         try {
             const endpoint = `query { ${this.subEndPoint} { id } }`;
-            const response = await glpiApi.graphql<{ Computer: { id: number | string }[] }>(endpoint);
-            if (response.Computer) {
-                return response.Computer.map(computer => Number(computer.id));
+            const response = await glpiApi.graphql<{ Monitor: { id: number | string }[] }>(endpoint);
+            if (response.Monitor) {
+                return response.Monitor.map(monitor => Number(monitor.id));
             }
 
             return [];
@@ -39,6 +39,22 @@ export default class MonitorService {
             }
         } catch (error) {
             throw error;
+        }
+    }
+    static createObject(name: string, entities_id: number=0, otherserial: string,states_id:number, locations_id: number,manufacturers_id:number, monitormodels_id:number,monitortypes_id:number,users_id:number): Object {
+        return {
+            input: {
+                name: name,
+                entities_id: entities_id,
+                otherserial: otherserial,
+                states_id: states_id,
+                locations_id: locations_id,
+                manufacturers_id: manufacturers_id,
+                monitormodels_id: monitormodels_id,
+                monitortypes_id:monitortypes_id,
+                users_id: users_id,
+                comment: ""
+            }
         }
     }
 }
