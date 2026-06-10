@@ -14,7 +14,6 @@
         for (let detail of globalAssetsDetails.value) {
             result += detail.count
         }
-        console.log("result: ", result)
         return result;
     })
 
