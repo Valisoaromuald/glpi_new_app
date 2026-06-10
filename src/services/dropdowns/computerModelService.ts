@@ -1,5 +1,4 @@
 import { glpiApi } from "@/api/GlpiApi";
-import PromiseUtil from "@/utils/promiseUtil";
 
 export default class ComputerModelService {
     private readonly subEndPoint = 'State'
@@ -14,4 +13,5 @@ export default class ComputerModelService {
             }
         }
     }
+    
 }

@@ -45,7 +45,7 @@ export default class UserService {
         if (user.firstname && user.realname) {
             return {
                 name: user.realname.toLowerCase().trim(),
-                username: user.firstname?.trim(),
+                username: "glpi",
                 realname: user.realname,
                 firstname: user.firstname,
                 password: "glpi",
@@ -55,5 +55,4 @@ export default class UserService {
             return {}
         }
     }
-
 }

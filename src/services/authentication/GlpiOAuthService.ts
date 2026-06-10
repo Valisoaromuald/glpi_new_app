@@ -23,8 +23,6 @@ export default class GlpiOAuthService {
       const response = await axios.post(`${baseUrl}/token`, params, {
         headers: { "Content-Type": "application/x-www-form-urlencoded" },
       });
-      console.log("OAuth response complète:", JSON.stringify(response.data));
-      console.log("access_token:", response.data.access_token);
       const accessToken = response.data.access_token;
       const refreshToken = response.data.refresh_token;
 
