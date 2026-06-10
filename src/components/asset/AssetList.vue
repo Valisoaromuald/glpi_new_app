@@ -4,6 +4,7 @@ import type { BaseAsset } from '@/types/asset/asset';
 import { ASSET_ENDPOINTS } from '@/utils/assetUtil';
 import { onMounted, ref } from 'vue';
 import AssetRow from './AssetRow.vue';
+import Pagination from '../dashboard/pagination/Pagination.vue';
 const allAssets = ref<Partial<BaseAsset>[]>([])
 const filteredAssets = ref<Partial<BaseAsset>[]>([])
 const searchCriteria = ref({
@@ -53,6 +54,10 @@ const handleReset = () => {
     // Réaffiche toute la liste
     filteredAssets.value = [...allAssets.value]
 }
+const handlePagination=(start:number,end:number)=>{
+    console.log("start: ",start)
+    console.log("end: ",end)
+}
 </script>
 <template>
     <div class=" w-full flex flex-col items-center justify-center mt-10">
@@ -66,9 +71,9 @@ const handleReset = () => {
                 <!-- Champ Nom -->
                 <div class="flex flex-col">
                     <label for="nom" class="text-sm font-medium text-gray-700 mb-1">Nom</label>
-                        <input id="nom" v-model="searchCriteria.name" type="text"
-                            class="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                            placeholder="ex. PC-XXX-XXX" />
+                    <input id="nom" v-model="searchCriteria.name" type="text"
+                        class="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                        placeholder="ex. PC-XXX-XXX" />
                 </div>
 
                 <!-- Champ Modèle -->
@@ -152,6 +157,7 @@ const handleReset = () => {
                     <tbody class="divide-y divide-gray-200">
                         <AssetRow v-for="asset in filteredAssets" :key="asset.name" :asset="asset" />
                     </tbody>
+                    
                 </template>
                 <template v-else>
                     <tbody>
@@ -161,6 +167,7 @@ const handleReset = () => {
                     </tbody>
                 </template>
             </table>
+            <Pagination :total="filteredAssets.length" @update:limit="handlePagination"/>
         </div>
     </div>
 </template>
