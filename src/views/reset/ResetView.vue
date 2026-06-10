@@ -1,12 +1,11 @@
 <script setup lang="ts">
-import Log from '@/components/reset/Log.vue';
+import Log from '@/components/logs/Log.vue';
 import UserService from '@/services/administration/userService';
 import AssetService from '@/services/assets/assetService';
 import DataResetService from '@/services/database/resetService';
 import { onMounted, ref } from 'vue';
 
 const ids = ref<number[]>([])
-const computerId = defineModel<number>('computerId', { required: true, default: 0 })
 const idsAndHrefs = ref<{ hrefs: string[], ids: number[][] }>({ hrefs: [], ids: [] })
 
 const logs = ref<string>('')
@@ -42,7 +41,6 @@ async function handleReset() {
 
       logs.value = Object.values(progressMap).join('\n')
     })
-
     logs.value += '\n\n✓ Réinitialisation terminée avec succès.'
   } catch (error) {
     console.error(error)
@@ -90,7 +88,7 @@ async function handleReset() {
     </div>
 
     <!-- Terminal Log.vue — visible dès qu'on a des logs -->
-    <Log v-if="logs || isResetting" :logs="logs" />
+    <Log v-if="logs || isResetting" :logs="logs" :title="`glpi reset-terminal`" />
 
   </div>
 </template>
