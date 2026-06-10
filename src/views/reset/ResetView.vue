@@ -66,8 +66,8 @@ async function handleReset() {
         <div>
           <p class="text-sm font-medium text-gray-800">Action irréversible</p>
           <p class="text-sm text-gray-500 mt-1 leading-relaxed">
-            Cette action supprimera toutes les données importées : produits, catégories,
-            utilisateurs et images. Elle ne peut pas être annulée.
+            Cette action supprimera toutes les données importées : elemnts, tickets,
+             couts de tickets et images. Elle ne peut pas être annulée.
           </p>
         </div>
       </div>

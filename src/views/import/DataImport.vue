@@ -65,7 +65,7 @@ async function handleImport(): Promise<void> {
     const file1: CsvResult | null = await importService.getRelevantCsvResult(files.value, FILE1_COLLUMN_NAMES)
     const file2: CsvResult | null = await importService.getRelevantCsvResult(files.value, FILE2_COLLUMN_NAMES)
     const file3: CsvResult | null = await importService.getRelevantCsvResult(files.value, FILE3_COLLUMN_NAMES)
-
+     const file4 : ImportedFile | null = importService.getZipFile(files.value); 
     if (file1) {
       appendLog('[Fichier 1] Démarrage de l\'import...')
       const msg1 = await importService.importAssets(file1, onProgress)
@@ -83,8 +83,13 @@ async function handleImport(): Promise<void> {
       const msg3 = await importService.importTicketCosts(file3, onProgress)
       appendLog(`[Fichier 3] ${msg3}`)
     }
+    if(file4){
+      appendLog('[Fichier 4] Démarrage de l\'import...')
+      const msg3 = await importService.importImagesZip(file4, onProgress)
+      appendLog(`[Fichier 4] ${msg3}`)
+    }
 
-    if (!file1 && !file2 && !file3) {
+    if (!file1 && !file2 && !file3 && !file4) {
       appendLog('Aucun fichier reconnu. Vérifiez les colonnes.')
     }
 
@@ -111,7 +116,7 @@ async function handleImport(): Promise<void> {
     </div>
     <div class="grid grid-cols-2 grid-rows-1 gap-4">
       <ImportCard :accept="`.csv`" :multiple="false" @add="handleAdd" @remove="handleRemove" />
-      <ImportCard :accept="`.zip`" :multiple="false" :disabled="true" />
+      <ImportCard :accept="`.zip`" :multiple="false" @add="handleAdd" @remove="handleRemove" />
     </div>
 
     <!-- ── Bouton global ── -->
