@@ -273,7 +273,6 @@ export default class AssetService {
     static createTypeObject(assetType: Partial<AssetType>): Object {
         if (assetType.name) {
             return {
-
                 name: assetType.name,
                 comment: assetType.comment
             }
@@ -284,7 +283,7 @@ export default class AssetService {
     static async linkDocumentToItem(
         itemId: number,
         documentId: number,
-        itemType:string
+        itemType: string
     ): Promise<void> {
         await glpiApi.postV1('/Document_Item', {
             input: {

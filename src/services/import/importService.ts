@@ -20,6 +20,8 @@ import TicketService from "../assistance/ticketService";
 import type { ImportedFile } from "@/types/file/importedFile";
 import TicketCostService from "../assistance/ticketCostService";
 import { uploadImageAsDocument } from "./documentService";
+import type { BaseAsset } from "@/types/asset/asset";
+import type { AssetType } from "@/types/asset/assetType";
 export default class ImportService {
     isSimilarRow(row1: Record<string, any>, row2: Record<string, any>): boolean {
         const keys = Object.keys(row1);
@@ -82,17 +84,15 @@ export default class ImportService {
 
         try {
             for (let state of states) {
-                let existingLocation = await glpiApi.getV1(`/State?searchText[name]=${state}`)
-                if (Object.keys(existingLocation.data).length === 0) {
-                    let object: Object = StateService.createObject(state)
-                    if (Object.keys(object).length !== 0) {
-                        let result = await glpiApi.postV1('/State', object)
-                        let res = {
-                            state: state,
-                            id: result.data.id
-                        }
-                        results.push(res)
+                let object: Object = StateService.createObject(state)
+                if (Object.keys(object).length !== 0) {
+                    let result = await glpiApi.postV1('/State', object)
+                    let res = {
+                        name: state,
+                        id: result.data.id
                     }
+                    results.push(res)
+
                 }
             }
         } catch (error) {
@@ -154,14 +154,15 @@ export default class ImportService {
             for (let user of users) {
                 let names = user.split(" ")
                 let usr: Partial<User> = {
-                    realname: names[1]?.trim() ?? '',
-                    firstname: names[0]?.trim() ?? ''
+                    realname: names[0]?.trim() ?? '',
+                    firstname: names[1]?.trim() ?? ''
                 }
                 let object: Object = UserService.createObject(usr)
                 if (Object.keys(object).length !== 0) {
                     let result = await glpiApi.postV1('/User', object)
                     let res = {
-                        name: user,
+                        realname: usr.realname,
+                        firstname: usr.firstname,
                         id: result.data.id
                     }
                     results.push(res)
@@ -204,10 +205,41 @@ export default class ImportService {
         return results
     }
 
+    async importTypes(csv: CsvResult): Promise<Partial<AssetType>[]> {
+        let types: string[] = this.getAllByHeader(csv, "Item_Type")
+        let results: Partial<AssetModel>[] = []
+        try {
+            for (let i = 0; i < types.length; i++) {
+                let type = types[i]
+                if (type) {
+
+                    let modelNameEndPoint = `${type}Type`
+                    let mdl: Partial<AssetType> = {
+                        name: type[i]
+                    }
+                    let object: Object = AssetService.createTypeObject(mdl)
+                    if (Object.keys(object).length !== 0) {
+                        let result = await glpiApi.postV1(modelNameEndPoint, object)
+                        let assetType = {
+                            name: type,
+                            id: result.data.id,
+                        }
+                        results.push(assetType)
+                    }
+
+                }
+            }
+        } catch (error) {
+            throw error;
+        }
+        return results
+    }
 
     getRelevantState(states: Partial<State>[], stateName: string): Partial<State> {
         for (let state of states) {
+            console.log(state.name === stateName," ","statName: ",state," state.name: ",stateName)
             if (state.name === stateName) {
+                console.log("state id: ", state.id)
                 return state
             }
         }
@@ -245,6 +277,14 @@ export default class ImportService {
         }
         return {}
     }
+    getRelevantType(assetTypes: Partial<AssetType>[], modelName: string): Partial<AssetType> {
+        for (let assetType of assetTypes) {
+            if (assetType.name === modelName) {
+                return assetType
+            }
+        }
+        return {}
+    }
     isAlreadyTreatedRow(row: CsvRow, rows: CsvRow[]): boolean {
         let treatedRow: CsvRow | undefined = rows.find(r => this.isSimilarRow(r, row))
         if (treatedRow) {
@@ -259,6 +299,7 @@ export default class ImportService {
             let locations: Partial<Location>[] = await this.importLocations(csv)
             let manufacturers: Partial<Manufacturer>[] = await this.importManufacturers(csv)
             let models: Partial<AssetModel>[] = await this.importModels(csv);
+            let types: Partial<AssetType>[] = await this.importTypes(csv);
             let users: Partial<User>[] = await this.importUsers(csv);
             let rows: CsvRow[] = csv.rows;
             let treatedRows: CsvRow[] = []
@@ -267,49 +308,37 @@ export default class ImportService {
                 if (row) {
                     //verfier si la ligne est deja traitee
                     if (row["Item_Type"]) {
-                        let assetName = row["Item_Type"].trim()
-                        let name = row["Name"] ?? ''
                         let treatedRow = this.isAlreadyTreatedRow(row, treatedRows)
                         if (!treatedRow) {
-                            let state = this.getRelevantState(states, row["Status"] ?? '')
+                            let state = this.getRelevantState(states, row["Status"]?.trim() ?? '')
+                            //  console.log(row["Status"],' ',state)
                             let location = this.getRelevantLocation(locations, row["Location"] ?? '')
                             let manufacturer = this.getRelevantManfacturer(manufacturers, row["Manufacturer"] ?? '')
                             let model = this.getRelevantModel(models, row["Model"] ?? '')
+                            let type = this.getRelevantType(types, row["Item_Type"] ?? '')
                             let names: string[] = row["User"]?.split(" ") ?? [];
                             let user: Partial<User> = {}
-                            if (names.length !== 0) {
-                                user = this.getRelevantUser(users, names[0] ?? '', names[1] ?? '')
+                            let assetNameToLower = row["Item_Type"].trim().toLocaleLowerCase()
 
-                                let computer: Partial<Computer> = {
-                                    name: row["Name"],
-                                    otherserial: row["Inventory_Number"],
-                                    status: {
-                                        id: state.id ?? 0,
-                                        name: state.name ?? ''
-                                    },
-                                    manufacturer: {
-                                        id: manufacturer.id ?? 0,
-                                        name: manufacturer.name ?? ''
-                                    },
-                                    user: {
-                                        id: user.id ?? 0,
-                                        name: user.firstname ?? ''
-                                    },
-                                    location: {
-                                        id: location.id ?? 0,
-                                    },
-                                    model: {
-                                        name: model.name ?? '',
-                                        id: model.id ?? 0
-                                    },
-                                }
-                                let computerObject = ComputerService.createObject(computer)
-                                if (Object.values(computerObject).length !== 0) {
-                                    let result = await glpiApi.postV1(`/${row["Item_Type"]}`, computerObject)
-                                    treatedRows.push(row)
-                                    onProgress?.('Tickets', i + 1, rows.length)
-                                }
+                            let assetModelKeyName = assetNameToLower + "models_id"
+                            let assetTypeKeyName = assetNameToLower + "types_id"
+                            user = this.getRelevantUser(users, names[0] ?? '', names[1] ?? '')
+                            let item: Partial<BaseAsset> = {
+                                name: row["Name"],
+                                otherserial: row["Inventory_Number"],
+                                states_id: state.id ?? 0,
+                                manufacturers_id: manufacturer.id ?? 0,
+                                users_id: user.id ?? 0,
+                                locations_id: location.id ?? 0,
+                                [assetModelKeyName]: model.id ?? 0,
+                                [assetTypeKeyName]: type.id ?? 0,
+                                comment: ""
                             }
+                            // console.log("item: ",item)
+                            let result = await glpiApi.postV1(`/${row["Item_Type"]}`, item)
+                            treatedRows.push(row)
+                            onProgress?.('Tickets', i + 1, rows.length)
+
                         }
 
                     }
@@ -534,10 +563,10 @@ export default class ImportService {
         }
         return null
     }
-    getZipFile(files:ImportedFile[]):ImportedFile | null{
+    getZipFile(files: ImportedFile[]): ImportedFile | null {
         try {
-            for(const file of files){
-                if(file.name.includes(".zip")){
+            for (const file of files) {
+                if (file.name.includes(".zip")) {
                     return file
                 }
             }

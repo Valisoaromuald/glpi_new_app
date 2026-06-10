@@ -42,21 +42,4 @@ export default class ComputerService {
             throw error;
         }
     }
-    static createObject(computer: Partial<Computer>): Object {
-        if (computer.name) {
-            return {
-                name: computer.name,
-                entities_id: 0,
-                otherserial: computer.otherserial,
-                states_id: 1,
-                locations_id: 1,
-                manufacturers_id: computer.manufacturer?.id ?? 0,
-                users_id: computer.user?.id ?? 0,
-                groups_id: 0,
-                comment: ""
-
-            }
-        }
-        return {}
-    }
 }

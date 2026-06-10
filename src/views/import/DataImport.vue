@@ -4,9 +4,10 @@ import Log from '@/components/logs/Log.vue';
 import DataResetService from '@/services/database/resetService';
 import { type CsvResult } from '@/services/import/fileService';
 import ImportService from '@/services/import/importService';
+import type { User } from '@/types/administration/user/user';
 import type { ImportedFile } from '@/types/file/importedFile';
 import { FILE1_COLLUMN_NAMES, FILE2_COLLUMN_NAMES, FILE3_COLLUMN_NAMES } from '@/utils/importUtil';
-import { computed, ref } from 'vue';
+import { computed, onMounted, ref } from 'vue';
 
 // ─── État global des fichiers sélectionnés ────────────────────────────────────
 
@@ -26,6 +27,7 @@ function appendLog(line: string): void {
   logs.value += (logs.value ? '\n' : '') + line
 }
 
+const user = ref<Partial<User>>({})
 /**
  * Met à jour la ligne de progression d'une ressource si elle existe déjà,
  * sinon l'ajoute. Evite les doublons de lignes pour une même ressource.
@@ -65,7 +67,7 @@ async function handleImport(): Promise<void> {
     const file1: CsvResult | null = await importService.getRelevantCsvResult(files.value, FILE1_COLLUMN_NAMES)
     const file2: CsvResult | null = await importService.getRelevantCsvResult(files.value, FILE2_COLLUMN_NAMES)
     const file3: CsvResult | null = await importService.getRelevantCsvResult(files.value, FILE3_COLLUMN_NAMES)
-     const file4 : ImportedFile | null = importService.getZipFile(files.value); 
+    const file4: ImportedFile | null = importService.getZipFile(files.value);
     if (file1) {
       appendLog('[Fichier 1] Démarrage de l\'import...')
       const msg1 = await importService.importAssets(file1, onProgress)
@@ -83,7 +85,7 @@ async function handleImport(): Promise<void> {
       const msg3 = await importService.importTicketCosts(file3, onProgress)
       appendLog(`[Fichier 3] ${msg3}`)
     }
-    if(file4){
+    if (file4) {
       appendLog('[Fichier 4] Démarrage de l\'import...')
       const msg3 = await importService.importImagesZip(file4, onProgress)
       appendLog(`[Fichier 4] ${msg3}`)
