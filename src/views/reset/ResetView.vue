@@ -14,8 +14,6 @@ const isResetting = ref(false)
 onMounted(async () => {
   const userService = new UserService();
   const assetService = new AssetService();
-  idsAndHrefs.value = await assetService.getIdsAndHrefsV2();
-  ids.value = await userService.getAllIdsDifferentFromDefaultIds()
 })
 
 const progressMap: Record<string, string> = {}  // ← pas de ref, simple objet
