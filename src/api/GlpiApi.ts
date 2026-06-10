@@ -114,7 +114,9 @@ class GlpiApi {
                     if (this.appToken) {
                         config.headers["app_token"] = this.appToken;
                     }
-                    config.headers["Content-Type"] = "application/json";
+                    if (!(config.data instanceof FormData)) {
+                        config.headers["Content-Type"] = "application/json";
+                    }
                 }
                 return config;
             },
@@ -279,9 +281,24 @@ class GlpiApi {
 
         return this.apiV1.get<T>(endpoint, { params });
     }
-
+    public async postV1Raw<T = any>(endpoint: string, formData: FormData): Promise<AxiosResponse<T>> {
+        console.log("t;lkjkl;jlkj valisoa")
+        return this.apiV1.post<T>(endpoint, formData)
+    }
     public async postV1<T = any>(endpoint: string, data: any = {}): Promise<AxiosResponse<T>> {
-        return this.apiV1.post<T>(endpoint, { input: data });
+        // FormData → envoi direct, sans envelopper dans input ni sérialiser
+        if (data instanceof FormData) {
+            return this.apiV1.post<T>(endpoint, data)
+        }
+
+        // JSON classique → enveloppe dans input comme avant
+        let realInput = {}
+        if (data.input) {
+            realInput = { input: data.input }
+        } else {
+            realInput = { input: data }
+        }
+        return this.apiV1.post<T>(endpoint, realInput)
     }
 
     public async putV1<T = any>(endpoint: string, data: any = {}): Promise<AxiosResponse<T>> {

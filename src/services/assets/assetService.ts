@@ -244,25 +244,25 @@ export default class AssetService {
 
     // Pour les modèles DC/rack (Computer serveur, NetworkEquipment, Rack, PDU...)
     static createDCModelObject(assetModel: Partial<AssetModel>): Object {
-            return {
-                input: {
-                    name: assetModel.name,
-                    comment: assetModel.comment,
-                    product_number: assetModel.product_number,
-                    weight: assetModel.weight,
-                    required_units: 1,
-                    depth: assetModel.depth,
-                    power_connections: assetModel.power_connections,
-                    power_consumption: assetModel.power_consumption,
-                    is_half_rack: assetModel.is_half_rack ?? 0,
-                    picture_front: assetModel.picture_front ?? null,
-                    picture_rear: assetModel.picture_rear ?? null,
-                }
-            };
-        
+        return {
+            input: {
+                name: assetModel.name,
+                comment: assetModel.comment,
+                product_number: assetModel.product_number,
+                weight: assetModel.weight,
+                required_units: 1,
+                depth: assetModel.depth,
+                power_connections: assetModel.power_connections,
+                power_consumption: assetModel.power_consumption,
+                is_half_rack: assetModel.is_half_rack ?? 0,
+                picture_front: assetModel.picture_front ?? null,
+                picture_rear: assetModel.picture_rear ?? null,
+            }
+        };
+
     }
     static createModelObject(assetModel: Partial<AssetModel>, endpoint: string): Object {
-        if(assetModel.name){
+        if (assetModel.name) {
             if (DC_MODELS.includes(endpoint)) {
                 return AssetService.createDCModelObject(assetModel)
             }
@@ -271,14 +271,27 @@ export default class AssetService {
         return {}
     }
     static createTypeObject(assetType: Partial<AssetType>): Object {
-        if(assetType.name){
+        if (assetType.name) {
             return {
-                
-                    name: assetType.name,
-                    comment: assetType.comment
+
+                name: assetType.name,
+                comment: assetType.comment
             }
         }
-        return{}
+        return {}
     }
 
-}
+    static async linkDocumentToItem(
+        itemId: number,
+        documentId: number,
+        itemType:string
+    ): Promise<void> {
+        await glpiApi.postV1('/Document_Item', {
+            input: {
+                documents_id: documentId,
+                itemtype: itemType,
+                items_id: itemId,
+            }
+        })
+    }
+}   

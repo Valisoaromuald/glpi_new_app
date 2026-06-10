@@ -1,7 +1,7 @@
 
 import { glpiApi } from "@/api/GlpiApi";
 import StateService from "../dropdowns/stateService";
-import { FileService, type CsvResult, type CsvRow } from "./fileService"
+import { FileService, type CsvResult, type CsvRow, type ExtractedImage } from "./fileService"
 
 import type { Manufacturer } from "@/types/dropdowns/manufacturer";
 import LocationService from "../dropdowns/locationService";
@@ -19,6 +19,7 @@ import { ASSET_ENDPOINTS } from "@/utils/assetUtil";
 import TicketService from "../assistance/ticketService";
 import type { ImportedFile } from "@/types/file/importedFile";
 import TicketCostService from "../assistance/ticketCostService";
+import { uploadImageAsDocument } from "./documentService";
 export default class ImportService {
     isSimilarRow(row1: Record<string, any>, row2: Record<string, any>): boolean {
         const keys = Object.keys(row1);
@@ -488,28 +489,24 @@ export default class ImportService {
         let treatedRows: CsvRow[] = []
         let rows: CsvRow[] = csv.rows
         try {
-            console.log("rows: ",rows)
             for (let i = 0; i < rows.length; i++) {
                 const row = rows[i]
                 if (row) {
                     let num_ticket: number = row["Num_Ticket"] ? Number(row["Num_Ticket"]) : 0
                     let relatedTicket = await TicketService.getByExternalId(row["Num_Ticket"])
-                    console.log("rltT",relatedTicket)
                     let actionTime: number = row["Duration_second"] ? Number(row["Duration_second"]) : 0
                     let effortCost: number = row["Time_Cost"] ? parseFloat(replaceChar(row["Time_Cost"], ',', '.')) : 0
                     let cost: number = row["Fixed_Cost"] ? parseFloat(replaceChar(row["Fixed_Cost"], ',', '.')) : 0
-                        let treatedRow: boolean = this.isAlreadyTreatedRow(row, treatedRows)
-                        console.log(treatedRow)
-                        if (!treatedRow) {
-                            
-                            let newTicketCostObject = TicketCostService.createObject(relatedTicket.id??0, actionTime, effortCost, cost)
-                            if(Object.keys(newTicketCostObject).length !== 0){
-                                console.log("vita traitement izy izany",treatedRow)
-                                await glpiApi.postV1('/TicketCost', newTicketCostObject)
-                                treatedRows.push(row)
-                                onProgress?.('TicketsCosts', i + 1, rows.length)
-                            }
+                    let treatedRow: boolean = this.isAlreadyTreatedRow(row, treatedRows)
+                    if (!treatedRow) {
+
+                        let newTicketCostObject = TicketCostService.createObject(relatedTicket.id ?? 0, actionTime, effortCost, cost)
+                        if (Object.keys(newTicketCostObject).length !== 0) {
+                            await glpiApi.postV1('/TicketCost', newTicketCostObject)
+                            treatedRows.push(row)
+                            onProgress?.('TicketsCosts', i + 1, rows.length)
                         }
+                    }
                 }
             }
             message = "Import fichier 3 termine"
@@ -536,5 +533,55 @@ export default class ImportService {
             throw error;
         }
         return null
+    }
+    getZipFile(files:ImportedFile[]):ImportedFile | null{
+        try {
+            for(const file of files){
+                if(file.name.includes(".zip")){
+                    return file
+                }
+            }
+        } catch (error) {
+            throw error;
+        }
+        return null;
+    }
+
+    deduplicateImages(images: ExtractedImage[]): ExtractedImage[] {
+        const seen = new Set<string>()
+        return images.filter(image => {
+            if (seen.has(image.name)) return false
+            seen.add(image.name)
+            return true
+        })
+    }
+
+    async importImagesZip(
+        zipFile: ImportedFile,
+        onProgress?: (name: string, done: number, total: number) => void
+    ): Promise<string> {
+        // 1. Extraire
+        let images = await FileService.extractImagesFromZip(zipFile)
+        if (images.length === 0) return 'Aucune image valide trouvée dans le zip.'
+
+        let done = 0
+        images = this.deduplicateImages(images)
+        for (const image of images) {
+            // 2. Upload comme Document GLPI
+            const document = await uploadImageAsDocument(image)
+
+            // 3. Trouver le Computer correspondant par nom de fichier
+            //    ex: "PC-ADM-001.png" → cherche un Computer nommé "PC-ADM-001"
+            const assetName = image.name.replace(/\.[^.]+$/, '')  // retire l'extension
+            const items = await this.resolveItem(assetName)
+
+            if (items && Object.values(items).length > 0) {
+                await AssetService.linkDocumentToItem(items.items_id, document.id, items.itemtype)
+            }
+            done++
+            onProgress?.(image.name, done, images.length)
+        }
+
+        return `${done} image(s) importée(s) avec succès.`
     }
 }
