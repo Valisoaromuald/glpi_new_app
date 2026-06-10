@@ -42,17 +42,16 @@ export default class DataResetService {
         const pas: number = 2;
         for (const resource of RESOURCES_TO_RESET) {
             const allIds = await this.getAllIds(resource.endpoint);
-            let done = 0;
             if (allIds.length !== 0) {
                 const protectedIds = resource.protectedIds ?? [];
                 const toDelete = allIds.filter(id => !protectedIds.includes(id));
-
+                
                 // ← Cas où tout est protégé
                 if (toDelete.length === 0) {
                     onProgress?.(resource.name, 0, 0);
                     continue;
                 }
-
+                
                 let done = 0;
                 for (let i = 0; i < toDelete.length; i += pas) {
                     const subIds = toDelete.slice(i, i + pas);
