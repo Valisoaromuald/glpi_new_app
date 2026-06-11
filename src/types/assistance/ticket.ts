@@ -1,6 +1,7 @@
 import type { Entity } from "../administration/user/entity"
 import type { User } from "../administration/user/user"
 import type { ITILCategory } from "../dropdowns/itilCategory"
+import type { Location } from "../dropdowns/location"
 
 export interface Ticket {
     id: number,
