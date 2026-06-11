@@ -44,3 +44,9 @@ npm run dev
 ```sh
 npm run build
 ```
+
+### install TinyMCE version 5.1.1
+npm install tinymce@6 @tinymce/tinymce-vue@5
+
+## copy tinymce into public folder
+cp -r node_modules/tinymce public/tinymce
