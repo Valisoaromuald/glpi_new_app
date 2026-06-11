@@ -1,15 +1,15 @@
 import { glpiApi } from "@/api/GlpiApi"
 
 export default class TicketCostService {
-    static createObject(ticketId: number, actionTime: number, effortCost: number, cost: number): Object {
-        if (ticketId && actionTime>=0 && effortCost>=0 && cost>=0) {
+    static createObject(ticketId: number, actionTime: number, timeCost: number,costFixed: number): Object {
+        if (ticketId && actionTime>=0 && timeCost>=0 && costFixed>=0) {
             return {
                 tickets_id: ticketId,
                 entities_id: 0,
                 name: "Coût", 
                 actiontime: actionTime,
-                effortcost: effortCost,
-                cost: cost
+                cost_time: timeCost,
+                cost_fixed: costFixed
             }
         }
         return {}

@@ -12,8 +12,6 @@ import type { User } from "@/types/administration/user/user";
 import type { AssetModel } from "@/types/asset/assetModel";
 import AssetService from "../assets/assetService";
 import UserService from "../administration/userService";
-import ComputerService from "../assets/computerService";
-import type { Computer } from "@/types/asset/computer";
 import { PRIORITY_MAP, replaceChar, STATUS_MAP, TYPE_MAP } from "@/utils/importUtil";
 import { ASSET_ENDPOINTS } from "@/utils/assetUtil";
 import TicketService from "../assistance/ticketService";
@@ -22,6 +20,7 @@ import TicketCostService from "../assistance/ticketCostService";
 import { uploadImageAsDocument } from "./documentService";
 import type { BaseAsset } from "@/types/asset/asset";
 import type { AssetType } from "@/types/asset/assetType";
+import type { TicketItem } from "@/types/assistance/ticketItem";
 export default class ImportService {
     isSimilarRow(row1: Record<string, any>, row2: Record<string, any>): boolean {
         const keys = Object.keys(row1);
@@ -404,7 +403,7 @@ export default class ImportService {
         return {}
     }
     //fonction qui sert a rechecher un nom d'equipement parmi tous les equipements
-    async resolveItem(name: string): Promise<{ itemtype: string, items_id: number } | null> {
+    async resolveItem(name: string): Promise<TicketItem | null> {
         try {
             let pas = 2;
             // Étape 1 — Parcourir tous les endpoints d'assets
@@ -441,7 +440,7 @@ export default class ImportService {
         return null
     }
 
-    async parseItems(raw: string): Promise<{ itemtype: string, items_id: number }[]> {
+    async parseItems(raw: string): Promise<TicketItem[]> {
         let result: { itemtype: string, items_id: number }[] = []
         try {
             // Étape 1 — Nettoyer et splitter la chaîne
@@ -454,14 +453,14 @@ export default class ImportService {
             // Étape 2 — Résoudre chaque nom en { itemtype, items_id }
             const resolved = await Promise.all(nameWithoutDuplicates.map(name => this.resolveItem(name)))
             // Étape 3 — Filtrer les nulls
-            result = resolved.filter((item): item is { itemtype: string, items_id: number } => item !== null)
+            result = resolved.filter((item): item is  TicketItem => item !== null)
         } catch (error) {
             throw error
         }
         return result;
     }
 
-    async linkItemsToTicket(ticketId: number, items: { itemtype: string, items_id: number }[]): Promise<void> {
+    async linkItemsToTicket(ticketId: number, items: TicketItem[]): Promise<void> {
         try {
             // Étape 1 — Lier chaque équipement au ticket
             for (const item of items) {
@@ -522,7 +521,7 @@ export default class ImportService {
                 const row = rows[i]
                 if (row) {
                     let num_ticket: number = row["Num_Ticket"] ? Number(row["Num_Ticket"]) : 0
-                    let relatedTicket = await TicketService.getByExternalId(row["Num_Ticket"])
+                    let relatedTicket = await TicketService.getByExternalId(String(num_ticket))
                     let actionTime: number = row["Duration_second"] ? Number(row["Duration_second"]) : 0
                     let effortCost: number = row["Time_Cost"] ? parseFloat(replaceChar(row["Time_Cost"], ',', '.')) : 0
                     let cost: number = row["Fixed_Cost"] ? parseFloat(replaceChar(row["Fixed_Cost"], ',', '.')) : 0
