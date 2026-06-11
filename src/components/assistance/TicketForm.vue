@@ -12,15 +12,13 @@ import ImportService from '@/services/import/importService'
 import { ASSET_ENDPOINTS } from '@/utils/assetUtil'
 import AssetService from '@/services/assets/assetService'
 import type { BaseAsset } from '@/types/asset/asset'
-
-
-import { defineAsyncComponent } from 'vue'
 import RichTextEditor from '../RichTextEditor.vue'
 const users = ref<Partial<User>[]>([])
 
 // ─── Formulaire ───────────────────────────────────────────────────────────────
 
 const defaultForm = (): Partial<Ticket> => ({
+    date_creation: new Date().toISOString().slice(0, 16),
     name: '',
     content: '',
     urgency: 3,
@@ -41,15 +39,15 @@ const defaultForm = (): Partial<Ticket> => ({
 const request_types = ref<{ id: number, name: string }[]>([])
 
 const form = reactive<Partial<Ticket>>(defaultForm())
-const selectedElements = ref<LinkedElement[]>([])
-
+const createId = () => {
+    return crypto.randomUUID()
+}
 async function selectElements(element: LinkedElement): Promise<void> {
     const assetService = new AssetService()
-
     try {
         const assets = await assetService.getAssets<Partial<BaseAsset>[]>(element.type, true)
-
         element.availableElements = assets.map(asset => ({
+            uid: createId(),
             id: String(asset.id),
             type: element.type,
             name: asset.name ?? '',
@@ -80,6 +78,7 @@ const removeActor = (index: number) => {
 const elements = ref<LinkedElement[]>([])
 const addElement = () => {
     elements.value.push({
+        uid: createId(),
         id: '',
         type: 'computer',
         name: '',
@@ -142,17 +141,15 @@ onMounted(async () => {
                 <!-- ── Ticket ── -->
                 <Accordion title="Ticket" :default-open="true">
                     <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
-
-                        <!-- Titre -->
                         <div class="md:col-span-2">
-                            <label class="form-label">Titre <span class="text-red-500">*</span></label>
-                            <input v-model="form.name" type="text" required class="form-input"
+                            <label class="form-label">Date d'ouverture </label>
+                            <input v-model="form.date_creation" type="datetime-local" required class="form-input"
                                 placeholder="Ex : Problème imprimante" />
                         </div>
 
                         <!-- Type -->
                         <div>
-                            <label class="form-label">Type <span class="text-red-500">*</span></label>
+                            <label class="form-label">Type</label>
                             <select v-model="form.type" required class="form-input">
                                 <option :value="1">Incident</option>
                                 <option :value="2">Demande</option>
@@ -203,6 +200,12 @@ onMounted(async () => {
                                     {{ label }}
                                 </option>
                             </select>
+                        </div>
+                        <!-- Titre -->
+                        <div class="md:col-span-2">
+                            <label class="form-label">Titre <span class="text-red-500">*</span></label>
+                            <input v-model="form.name" type="text" required class="form-input"
+                                placeholder="Ex : Problème imprimante" />
                         </div>
 
                         <!-- Description -->
@@ -289,8 +292,9 @@ onMounted(async () => {
                 <Accordion title="Éléments" :badge="elements.length">
                     <div class="space-y-3">
 
-                        <div v-for="(element, index) in elements" :key="element.type"
+                        <div v-for="(element, index) in elements" :key="element.uid"
                             class="rounded-md border border-gray-200 bg-gray-50 p-3">
+
                             <div class="grid grid-cols-1 gap-3 md:grid-cols-3">
                                 <div>
                                     <label class="form-label">Type</label>
@@ -299,10 +303,9 @@ onMounted(async () => {
                                             :value="endpoint.itemtype">{{ endpoint.french_translation }}</option>
                                     </select>
                                 </div>
-
                                 <div>
                                     <label class="form-label">Nom--N° de série</label>
-                                    <select v-model="element.id" class="form-input">
+                                    <select v-model="element.name" class="form-input">
                                         <option value="">-- Choisir --</option>
 
                                         <option v-for="el in element.availableElements" :key="el.id" :value="el.id">

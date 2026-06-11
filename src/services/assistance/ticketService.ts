@@ -43,7 +43,20 @@ export default class TicketService {
             throw error;
         }
     }
-
+    async getAll(): Promise<Partial<Ticket>[]> {
+        try {
+            const endpoint = `/Ticket?expand_dropdowns=1`;
+            const response = await glpiApi.getV1<Partial<Ticket>[]>(endpoint);
+            if (response.data) {
+                return response.data;
+            }
+            return [];
+        } catch (error) {
+            // Le "throw error" dans un bloc catch simple est redondant, 
+            // mais si tu prévois d'ajouter des logs ici, tu peux le laisser.
+            throw error;
+        }
+    }
     async deleteById(id: number | string): Promise<void> {
         try {
             const endpoint = `${this.endPointPrefix}/${id}?force=1`
@@ -105,13 +118,22 @@ export default class TicketService {
         }
     }
     static createObject(ticket: Partial<Ticket>): Object {
+        let date_creation ='';
+        
+        if(ticket.date_creation){
+            let date = ticket.date_creation.replace("T"," ")
+            date_creation = date
+        }
+        else{   
+
+        }
         return {
             name: ticket.name ?? '',
             content: ticket.content ?? '',
             urgency: ticket.urgency ?? 3,
             impact: ticket.impact ?? 3,
             priority: ticket.priority ?? 3,
-
+            date_creation: date_creation,
             itilcategories_id: ticket.category?.id ?? 0,
             locations_id: ticket.location?.id ?? 0,
             entities_id: ticket.entity?.id ?? 0,
