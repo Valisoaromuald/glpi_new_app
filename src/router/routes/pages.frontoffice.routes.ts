@@ -10,13 +10,13 @@ export const frontofficeRoutes: RouteRecordRaw[] = [
             {
                 path: 'home',
                 name: 'FrontOfficeHome',
-                component: () => import('@/components/asset/AssetList.vue'),
+                component: () => import('@/views/asset/AssetListView.vue'),
                 meta: { requiresAdmin: true }
             },
             {
                 path: 'ticket/form',
                 name: 'TicketForm',
-                component: () => import('@/components/assistance/TicketForm.vue'),
+                component: () => import('@/views/assistance/TicketFormView.vue'),
             }
         ]
     },
