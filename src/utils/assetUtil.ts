@@ -33,8 +33,8 @@ export const DC_MODELS = [
 ]
 
 export const ASSET_ENDPOINTS = [
-    { itemtype: 'Computer',           endpoint: '/Computer' },
-    { itemtype: 'Monitor',            endpoint: '/Monitor' },
+    { itemtype: 'Computer',french_translation:'Ordinateur',          endpoint: '/Computer' },
+    { itemtype: 'Monitor', french_translation:'Moniteur',           endpoint: '/Monitor' },
     // { itemtype: 'Rack',               endpoint: '/Rack' },
     // // { itemtype: 'PDU',                endpoint: '/PDU' },
     // { itemtype: 'Enclosure',          endpoint: '/Enclosure' },
@@ -42,7 +42,7 @@ export const ASSET_ENDPOINTS = [
     // { itemtype: 'NetworkEquipment',   endpoint: '/NetworkEquipment' },
     // { itemtype: 'PassiveDCEquipment', endpoint: '/PassiveDCEquipment' },
     // { itemtype: 'Printer',            endpoint: '/Printer' },
-    { itemtype: 'Phone',              endpoint: '/Phone' },
+    { itemtype: 'Phone', french_translation:'Téléphone',             endpoint: '/Phone' },
     // { itemtype: 'Peripheral',         endpoint: '/Peripheral' },
     // { itemtype: 'Software',           endpoint: '/Software' },
 ]
