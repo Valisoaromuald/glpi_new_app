@@ -282,7 +282,6 @@ class GlpiApi {
         return this.apiV1.get<T>(endpoint, { params });
     }
     public async postV1Raw<T = any>(endpoint: string, formData: FormData): Promise<AxiosResponse<T>> {
-        console.log("t;lkjkl;jlkj valisoa")
         return this.apiV1.post<T>(endpoint, formData)
     }
     public async postV1<T = any>(endpoint: string, data: any = {}): Promise<AxiosResponse<T>> {
