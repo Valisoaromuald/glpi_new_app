@@ -1,5 +1,5 @@
 import { glpiApi } from "@/api/GlpiApi"
-import type { Asset } from "@/types/asset/asset";
+import type { Asset, BaseAsset } from "@/types/asset/asset";
 import type { AssetModel } from "@/types/asset/assetModel";
 import type { AssetType } from "@/types/asset/assetType";
 import { DC_MODELS, translations, V1_ONLY_ITEMTYPES, type V1OnlyItemtype } from "@/utils/assetUtil";
@@ -108,6 +108,7 @@ export default class AssetService {
      */
     public async getAssets<T = any>(
         itemtype: string,
+        isV1: boolean=false,
         options: {
             filter?: string;       // RSQL, v2 uniquement
             range?: string;        // ex: "0-49"
@@ -117,13 +118,16 @@ export default class AssetService {
     ): Promise<T> {
         const isV1Only = (V1_ONLY_ITEMTYPES as readonly string[]).includes(itemtype);
 
-        if (isV1Only) {
+        if (isV1Only || isV1) {
             // Fallback v1
             const v1Params: Record<string, any> = {
                 range: options.range ?? "0-99",
                 expand_dropdowns: options.expand_dropdowns ? 1 : 0,
                 ...options.params,
             };
+            if(itemtype.includes("/")){
+                itemtype=itemtype.replace("/","")
+            }
             const res = await glpiApi.getV1<T>(`/${itemtype}`, v1Params);
             return res.data;
         }
@@ -178,58 +182,6 @@ export default class AssetService {
     public async deleteAssetV1<T = any>(itemtype: string, id: number, force = false): Promise<T> {
         const res = await glpiApi.deleteV1<T>(`/${itemtype}/${id}`, { force_purge: force ? 1 : 0 });
         return res.data;
-    }
-    async getIdsAndHrefsV1(): Promise<{ hrefs: string[]; ids: number[][] }> {
-        const array: readonly string[] = V1_ONLY_ITEMTYPES as readonly string[]
-
-        try {
-            const commonOption = {
-                params: { only_id: true }
-            }
-
-            const promises = array.map(itemType =>
-                this.getAssets<{ id: number }[]>(itemType, commonOption)
-            )
-
-            const results = await Promise.all(promises)
-
-            return {
-                hrefs: [...array],
-                ids: results.map(res => res.map(obj => obj.id))
-            }
-
-        } catch (error) {
-            throw error
-        }
-    }
-    async getIdsAndHrefsV2(): Promise<{ hrefs: string[]; ids: number[][] }> {
-        // 1. Récupération des assets
-        const array: Asset[] = await this.getAll();
-
-        // 2. Création et exécution des promesses en parallèle
-        const promises = array.map(async (itemType) => {
-            const endpoint = `query { ${itemType.itemtype} { id } }`;
-
-            // On tape la réponse attendue de l'API GLPI (Record<string, ...> gère la clé dynamique)
-            const response = glpiApi.graphql<Record<string, { id: number | string }[]>>(endpoint);
-            return response;
-        });
-
-        // 3. Attente de la résolution de toutes les requêtes
-        const array2D = await Promise.all(promises);
-        const real2DArray: Array<Array<number>> = []
-        for (let result of array2D) {
-
-            const data = Object.values(result)[0] || []
-            // On extrait et convertit directement les IDs en nombres
-            const tempoArray = data.map(el => el.id ? Number(el.id) : 0);
-            real2DArray.push(tempoArray)
-        }
-        // 4. Retour du résultat final
-        return {
-            hrefs: array.map(item => item.href),
-            ids: real2DArray
-        };
     }
     // Pour les modèles simples (Printer, Monitor, Phone, Peripheral, Device*)
     static createSimpleModelObject(assetModel: Partial<AssetModel>): Object {
@@ -292,5 +244,20 @@ export default class AssetService {
                 items_id: itemId,
             }
         })
+    }
+
+    async getAllAssets(endpoints:string[]):Promise<Partial<BaseAsset>[]>{
+        let results :Partial<BaseAsset>[] = []
+        try {
+            for(let endpoint of endpoints){
+                let list :Partial<BaseAsset>[]= await this.getAssets(endpoint,true,{
+                    expand_dropdowns : true
+                })
+            list.forEach(el=> results.push(el))
+            }
+        } catch (error) {
+            throw error
+        }
+        return results;
     }
 }   

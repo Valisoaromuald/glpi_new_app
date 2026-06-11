@@ -44,15 +44,25 @@ export default class UserService {
     static createObject(user: Partial<User>): Object {
         if (user.firstname && user.realname) {
             return {
-                name: user.realname.toLowerCase().trim(),
-                username: "glpi",
+                name: `${user.firstname.toLowerCase().trim()}.${user.realname.toLowerCase().trim()}`,
                 realname: user.realname,
                 firstname: user.firstname,
                 password: "glpi",
             }
         }
-        else {
-            return {}
+        return {}
+    }
+    async getAll(): Promise<Partial<User>[]> {
+        let users: Partial<User>[] = []
+        try {
+            const response = await glpiApi.get('/Administration/User');
+            if (response.data.length > 0) {
+                users = response.data
+            }
+
+        } catch (error) {
+            throw error;
         }
+        return users
     }
 }

@@ -1,5 +1,7 @@
 import { glpiApi } from "@/api/GlpiApi";
 import type { Ticket } from "@/types/assistance/ticket";
+import type { LinkedElement } from "@/types/assistance/ticketForm";
+import type { TicketItem } from "@/types/assistance/ticketItem";
 import PromiseUtil from "@/utils/promiseUtil";
 
 export default class TicketService {
@@ -71,35 +73,91 @@ export default class TicketService {
             items_id: item.items_id
         }
     }
-    static async  getByExternalId(externalId: string | undefined): Promise<Partial<Ticket>> {
-    // 1. Sécurité : Si l'externalId est vide ou indéfini, on s'arrête tout de suite
-    const cleanId = externalId?.trim();
-    if (!cleanId) {
-        console.warn("getByExternalId: L'identifiant externe fourni est vide.");
-        return {};
-    }
-
-    try {
-        // 2. Appel à l'API GLPI avec le searchText sur le champ externalid
-        const response = await glpiApi.getV1(`/Ticket?searchText[externalid]=${cleanId}`);
-        
-        // 3. Traitement de la réponse
-        // GLPI retourne souvent un tableau. On vérifie s'il y a au moins un résultat.
-        if (Array.isArray(response.data) && response.data.length > 0) {
-            return response.data[0]; // On retourne le premier ticket correspondant trouvé
+    static async getByExternalId(externalId: string | undefined): Promise<Partial<Ticket>> {
+        // 1. Sécurité : Si l'externalId est vide ou indéfini, on s'arrête tout de suite
+        const cleanId = externalId?.trim();
+        if (!cleanId) {
+            console.warn("getByExternalId: L'identifiant externe fourni est vide.");
+            return {};
         }
 
-        // Si la réponse est déjà un objet unique contenant le ticket
-        if (response && response.data.externalid === cleanId) {
-            return response.data[0] as Partial<Ticket>;
+        try {
+            // 2. Appel à l'API GLPI avec le searchText sur le champ externalid
+            const response = await glpiApi.getV1(`/Ticket?searchText[externalid]=${cleanId}`);
+
+            // 3. Traitement de la réponse
+            // GLPI retourne souvent un tableau. On vérifie s'il y a au moins un résultat.
+            if (Array.isArray(response.data) && response.data.length > 0) {
+                return response.data[0]; // On retourne le premier ticket correspondant trouvé
+            }
+
+            // Si la réponse est déjà un objet unique contenant le ticket
+            if (response && response.data.externalid === cleanId) {
+                return response.data[0] as Partial<Ticket>;
+            }
+
+            // Si rien n'a été trouvé
+            return {};
+
+        } catch (error) {
+            console.error(`Erreur lors de la récupération du ticket avec l'externalid [${cleanId}] :`, error);
+            throw error;
         }
-
-        // Si rien n'a été trouvé
-        return {};
-
-    } catch (error) {
-        console.error(`Erreur lors de la récupération du ticket avec l'externalid [${cleanId}] :`, error);
-        throw error; 
     }
-}
+    static createObject(ticket: Partial<Ticket>): Object {
+        return {
+            name: ticket.name ?? '',
+            content: ticket.content ?? '',
+            urgency: ticket.urgency ?? 3,
+            impact: ticket.impact ?? 3,
+            priority: ticket.priority ?? 3,
+
+            itilcategories_id: ticket.category?.id ?? 0,
+            locations_id: ticket.location?.id ?? 0,
+            entities_id: ticket.entity?.id ?? 0,
+            type: ticket.type ?? 1,
+
+            requesttypes_id: ticket.request_type?.id ?? 0,
+
+            // Acteurs extraits depuis team[]
+            _users_id_requester: ticket.team
+                ?.filter(m => m.type === 'User' && m.role === 'requester')
+                .map(m => m.id) ?? [],
+
+            _users_id_assign: ticket.team
+                ?.filter(m => m.type === 'User' && m.role === 'assign')
+                .map(m => m.id) ?? [],
+
+            _users_id_observer: ticket.team
+                ?.filter(m => m.type === 'User' && m.role === 'observer')
+                .map(m => m.id) ?? [],
+
+            // Groupes extraits depuis team[]
+            _groups_id_assign: ticket.team
+                ?.filter(m => m.type === 'Group' && m.role === 'assign')
+                .map(m => m.id) ?? [],
+
+            _groups_id_observer: ticket.team
+                ?.filter(m => m.type === 'Group' && m.role === 'observer')
+                .map(m => m.id) ?? [],
+        }
+    }
+    async create(ticket: Partial<Ticket>): Promise<any> {
+        try {
+            const object = TicketService.createObject(ticket)
+            const response = await glpiApi.postV1('/Ticket', object)
+            return response.data
+        } catch (error) {
+            throw error;
+        }
+    }
+    async getItemsByLinkedElements(
+        elements: LinkedElement[]
+    ): Promise<TicketItem[]> {
+        return elements.map(element => (
+            {
+            itemtype: element.type,
+            items_id: Number(element.id)
+        }))
+    }
 }
