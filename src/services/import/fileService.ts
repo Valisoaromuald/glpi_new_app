@@ -31,6 +31,21 @@ export class FileService {
     this.source = source;
   }
 
+  trimStringArray(values: string[]): string[] {
+    return values.map(value => value.trim());
+  }
+  trimCsvRows(
+    records: CsvRow[]
+  ): CsvRow[] {
+    return records.map(record =>
+      Object.fromEntries(
+        Object.entries(record).map(([key, value]) => [
+          key,
+          value.trim()
+        ])
+      )
+    );
+  }
   /**
    * Lit et parse le fichier CSV.
    * Retourne les headers et les lignes sous forme d'objets.
@@ -55,8 +70,8 @@ export class FileService {
     });
 
     return {
-      headers: result.meta.fields ?? [],
-      rows: result.data,
+      headers: this.trimStringArray(result.meta.fields ?? []),
+      rows: this.trimCsvRows(result.data),
     };
   }
 
@@ -84,32 +99,80 @@ export class FileService {
   }
 
 
-  static async extractImagesFromZip(importedFile: ImportedFile): Promise<ExtractedImage[]> {
-    const zip = await JSZip.loadAsync(importedFile.file)  // ← .file
+  static async extractImagesFromZip(
+    importedFile: ImportedFile
+  ): Promise<ExtractedImage[]> {
+    const rootZip = await JSZip.loadAsync(importedFile.file)
+
+    return await this.extractImagesRecursively(rootZip)
+  }
+
+  static async extractImagesRecursively(
+    zip: JSZip
+  ): Promise<ExtractedImage[]> {
     const results: ExtractedImage[] = []
 
     for (const [path, entry] of Object.entries(zip.files)) {
-      if (entry.dir || path.includes('__MACOSX') || path.startsWith('.')) continue
+      if (
+        entry.dir ||
+        path.includes('__MACOSX') ||
+        path.startsWith('.')
+      ) {
+        continue
+      }
+
+      const filename = path.split('/').pop()?.toLowerCase() ?? ''
+
+      // ZIP trouvé → exploration récursive
+      if (filename.endsWith('.zip')) {
+        try {
+          const zipBuffer = await entry.async('arraybuffer')
+          const nestedZip = await JSZip.loadAsync(zipBuffer)
+
+          const nestedResults =
+            await this.extractImagesRecursively(nestedZip)
+
+          results.push(...nestedResults)
+        } catch (error) {
+          console.error(`Erreur ZIP imbriqué : ${path}`, error)
+        }
+
+        continue
+      }
 
       const buffer = await entry.async('arraybuffer')
+
       const bytesCopied = new Uint8Array(buffer).slice(0, 32)
+
       const detected = detectImageType(bytesCopied)
-      console.log(path, [...bytesCopied].map(b => '0x' + b.toString(16).padStart(2, '0')).join(' '))
-      if (!detected) continue
+
+      if (!detected) {
+        continue
+      }
 
       const name = path.split('/').pop()!
+
       const nameWithoutExt = name.replace(/\.[^.]+$/, '')
 
-      // Extension basée sur la vraie détection, pas sur le nom du fichier
-      const trueName = `${nameWithoutExt}.${detected.ext}` 
+      const trueName =
+        `${nameWithoutExt}.${detected.ext}`
 
-      const file = new File([buffer], trueName, { type: detected.mime })
-      results.push({ name: trueName, file })
+      const file = new File(
+        [buffer],
+        trueName,
+        {
+          type: detected.mime
+        }
+      )
+
+      results.push({
+        name: trueName,
+        file
+      })
     }
 
     return results
   }
 }
-
 // Singleton exporté — instance partagée dans toute l'app
 export const csvService = new FileService();
