@@ -5,7 +5,7 @@ import TableHeader from './TableHeader.vue';
     }>()
 </script>
 <template>
-    <tr>
+    <tr class="bg-amber-300">
         <TableHeader v-for="columnName in columnNames" :columnName="columnName" :key="columnName"/>
     </tr>
 </template>

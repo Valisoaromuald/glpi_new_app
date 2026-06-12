@@ -18,7 +18,8 @@ function toggle(): void {
     <!-- ── Header (bouton toggle) ── -->
     <button
       type="button"
-      class="w-full flex items-center justify-between px-3 py-2 rounded-lg text-sm font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+      class="w-full flex items-center justify-between px-3 py-2 rounded-lg text-sm font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-blue-700 transition-colors"
+      active-class="bg-blue-700 text-white font-medium"
       @click="toggle"
     >
       <span>{{ props.title }}</span>
@@ -30,6 +31,7 @@ function toggle(): void {
         viewBox="0 0 24 24"
         stroke-width="1.5"
         stroke="currentColor"
+
       >
         <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
       </svg>

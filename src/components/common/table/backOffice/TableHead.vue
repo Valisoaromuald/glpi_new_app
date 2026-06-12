@@ -5,7 +5,7 @@ const props = defineProps<{
 }>()
 </script>
 <template>
-    <thead class="bg-gray-950">
+    <thead class="bg-gray-950 ">
         <TableRowHeader :column-names="columnNames" />
     </thead>
 </template>
