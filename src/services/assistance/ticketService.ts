@@ -2,7 +2,9 @@ import { glpiApi } from "@/api/GlpiApi";
 import type { Ticket } from "@/types/assistance/ticket";
 import type { LinkedElement } from "@/types/assistance/ticketForm";
 import type { TicketItem } from "@/types/assistance/ticketItem";
+import type { TicketGroup, TicketUser } from "@/types/assistance/ticketUser";
 import PromiseUtil from "@/utils/promiseUtil";
+import { getLabelByValue, PRIORITY_MAP, TICKET_STATUS_MAP } from "@/utils/ticketUtil";
 
 export default class TicketService {
     private readonly subEndPoint = 'Ticket'
@@ -45,7 +47,7 @@ export default class TicketService {
     }
     async getAll(): Promise<Partial<Ticket>[]> {
         try {
-            const endpoint = `/Ticket?expand_dropdowns=1`;
+            const endpoint = `/Ticket?expand_dropdowns=1&range=0-9999`;
             const response = await glpiApi.getV1<Partial<Ticket>[]>(endpoint);
             if (response.data) {
                 return response.data;
@@ -55,6 +57,50 @@ export default class TicketService {
             // Le "throw error" dans un bloc catch simple est redondant, 
             // mais si tu prévois d'ajouter des logs ici, tu peux le laisser.
             throw error;
+        }
+    }
+    async getById(id: number): Promise<Partial<Ticket>> {
+        const response = await glpiApi.getV1<Partial<Ticket>>(
+            `/Ticket/${id}?expand_dropdowns=1`
+        )
+        return response.data
+    }
+    async getTicketsList(): Promise<Object[]> {
+        const ticketLists: object[] = []
+        try {
+            const lists = await this.getAll();
+            for (let element of lists) {
+                let status = getLabelByValue(TICKET_STATUS_MAP, Number(element.status))
+                let priority = getLabelByValue(PRIORITY_MAP, Number(element.priority))
+                const actors = await this.getActors(Number(element.id))
+                const requesters = actors.users.filter((u: TicketUser) => u.type === 1)
+                const assignes = actors.users.filter((u: TicketUser) => u.type === 2)
+                const assignedGroups = actors.groups.filter((g: TicketGroup) => g.type === 2)
+                let object = {
+                    id: element.id,
+                    titre: element.name,
+                    status: status,
+                    priority: priority,
+                    requesters: requesters.map((u: TicketUser) => u.users_id),
+                    assignes: assignes.map((u: TicketUser) => u.users_id),
+                    assignedGroups: assignedGroups.map((g: TicketGroup) => g.groups_id),
+                    date_creation: element.date_creation
+                }
+                ticketLists.push(object)
+            }
+        } catch (error) {
+            throw error;
+        }
+        return ticketLists;
+    }
+    async getActors(ticketId: number) {
+        const [users, groups] = await Promise.all([
+            glpiApi.getV1(`/Ticket/${ticketId}/Ticket_User?expand_dropdowns=1`),
+            glpiApi.getV1(`/Ticket/${ticketId}/Group_Ticket?expand_dropdowns=1`),
+        ])
+        return {
+            users: users.data,
+            groups: groups.data,
         }
     }
     async deleteById(id: number | string): Promise<void> {
@@ -118,13 +164,13 @@ export default class TicketService {
         }
     }
     static createObject(ticket: Partial<Ticket>): Object {
-        let date_creation ='';
-        
-        if(ticket.date_creation){
-            let date = ticket.date_creation.replace("T"," ")
+        let date_creation = '';
+
+        if (ticket.date_creation) {
+            let date = ticket.date_creation.replace("T", " ")
             date_creation = date
         }
-        else{   
+        else {
 
         }
         return {
@@ -178,8 +224,10 @@ export default class TicketService {
     ): Promise<TicketItem[]> {
         return elements.map(element => (
             {
-            itemtype: element.type,
-            items_id: Number(element.id)
-        }))
+                itemtype: element.type,
+                items_id: Number(element.id)
+            }))
     }
+
+
 }
