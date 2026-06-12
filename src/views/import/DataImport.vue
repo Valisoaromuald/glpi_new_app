@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import ImportCard from '@/components/import/ImportCard.vue';
-import Log from '@/components/logs/Log.vue';
+import Log from '@/components/terminal/Log.vue';
 import DataResetService from '@/services/database/resetService';
 import { type CsvResult } from '@/services/import/fileService';
 import ImportService from '@/services/import/importService';
@@ -22,6 +22,7 @@ const filesLabel = computed(() =>
 
 const logs = ref<string>('')
 const isImporting = ref<boolean>(false)
+const isError = ref<boolean>(false)
 
 function appendLog(line: string): void {
   logs.value += (logs.value ? '\n' : '') + line
@@ -68,6 +69,10 @@ async function handleImport(): Promise<void> {
     const file2: CsvResult | null = await importService.getRelevantCsvResult(files.value, FILE2_COLLUMN_NAMES)
     const file3: CsvResult | null = await importService.getRelevantCsvResult(files.value, FILE3_COLLUMN_NAMES)
     const file4: ImportedFile | null = importService.getZipFile(files.value);
+    console.log("file1: ",file1)
+    console.log("file2: ",file2)
+    console.log("file3: ",file3)
+    console.log("file4: ",file4)
     if (file1) {
       appendLog('[Fichier 1] Démarrage de l\'import...')
       const msg1 = await importService.importAssets(file1, onProgress)
@@ -86,6 +91,7 @@ async function handleImport(): Promise<void> {
       appendLog(`[Fichier 3] ${msg3}`)
     }
     if (file4) {
+      console.log("mankato e: ",file4)
       appendLog('[Fichier 4] Démarrage de l\'import...')
       const msg3 = await importService.importImagesZip(file4, onProgress)
       appendLog(`[Fichier 4] ${msg3}`)
@@ -99,12 +105,24 @@ async function handleImport(): Promise<void> {
 
   } catch (error) {
     const resetService = new DataResetService()
-    appendLog(`[ERREUR] ${(error as Error).message}`)
+    isError.value = true
+    appendLog(`✗[ERREUR] ${(error as Error).message}`)
     await resetService.resetDatabase(onProgress)
     appendLog('[RESET] Base de données réinitialisée.')
+    throw error;
   } finally {
     isImporting.value = false
+    isError.value = false
   }
+}
+function textButton(): string {
+  if (isImporting.value && isError.value) {
+    return 'Réinitialisation des données...'
+  }
+  if (isImporting.value) {
+    return 'Importation en cours...'
+  }
+  return `Importer ${files.value.length} ${filesLabel.value}`  // ← .value
 }
 </script>
 
@@ -129,7 +147,7 @@ async function handleImport(): Promise<void> {
         <path stroke-linecap="round" stroke-linejoin="round"
           d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" />
       </svg>
-      {{ isImporting ? 'Import en cours...' : `Importer ${files.length} ${filesLabel}` }}
+      {{ textButton() }}
     </button>
 
     <!-- ── Terminal de logs ── -->

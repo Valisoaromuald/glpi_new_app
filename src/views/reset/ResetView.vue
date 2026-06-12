@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import Log from '@/components/logs/Log.vue';
+import Log from '@/components/terminal/Log.vue';
 import UserService from '@/services/administration/userService';
 import AssetService from '@/services/assets/assetService';
 import DataResetService from '@/services/database/resetService';
