@@ -15,7 +15,7 @@ export const FILE3_COLLUMN_NAMES = [
 
 export const STATUS_MAP: Record<string, number> = {
     'New': 1,
-    'Processing': 2,
+    'In progress (assigned)': 2,
     'Pending': 3,
     'Solved': 4,
     'Closed': 5
@@ -25,7 +25,8 @@ export const PRIORITY_MAP: Record<string, number> = {
     'Low': 2,
     'Medium': 3,
     'High': 4,
-    'Very High': 5
+    'Very High': 5,
+    'Major':6
 }
 export const TYPE_MAP: Record<string, number> = {
     'Incident': 1,
@@ -75,6 +76,46 @@ const IMAGE_SIGNATURES: FileSignature[] = [
   { ext: 'psd',  mime: 'image/vnd.adobe.photoshop', parts: [{ offset: 0, bytes: [0x38, 0x42, 0x50, 0x53] }] }, // "8BPS"
 ];
 
+export const MODEL_NAMES_LIST=[
+  'ComputerModel',
+  'MonitorModel',
+  'PhoneModel',
+  'NetworkEquipmentModel',
+  'PhoneModel',
+  'PeripheralModel',
+  'DeviceMotherboardModel',
+  'DeviceProcessorModel',
+  'DeviceMemoryModel',
+  'DeviceHardDriveModel',
+  'DeviceDriveModel',
+  'DeviceGraphicCardModel',
+  'DeviceSoundCardModel',
+  'DeviceNetworkCardModel',
+  'DevicePowerSupplyModel',
+  'DeviceGenericModel',
+  'DevicePciModel',
+  'DeviceCameraModel',
+  'DeviceFirmwareModel',
+  'RackModel',
+  'EnclosureModel',
+  'PDUModel',
+]
+
+export const TYPE_NAMES_LIST =[
+  'ComputerType',
+  'MonitorType',
+  'PhoneType',
+  'PrinterType',
+  'NetworkEquipmentType',
+  'RackType',
+  'PeripheralType',
+  'ClusterType',
+  'CableType',
+  'DeviceFirmwareType',
+  'DeviceHardDriveType',
+  'PDUType',
+  'DeviceGenericType',
+]
 
 function matchesPart(bytes: Uint8Array, part: SignaturePart): boolean {
   return part.bytes.every((b, i) => bytes[part.offset + i] === b);
