@@ -11,7 +11,8 @@ export default class DataResetService {
     async getAllIds(endpoint: string): Promise<number[]> {
         try {
             const ids: number[] = [];
-            const response = await glpiApi.get(endpoint);
+        
+            const response = await glpiApi.get(endpoint,{start:0,limit:1000});
             if (response) {
                 const items = await response.data;
                 if (items) {

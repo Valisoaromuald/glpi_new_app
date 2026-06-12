@@ -13,15 +13,18 @@
   "dependencies": {
     "@tailwindcss/vite": "^4.3.0",
     "@tinymce/tinymce-vue": "^5.1.1",
-    "axios": "^1.16.1",
+    "axios": "^1.17.0",
     "buffer": "^6.0.3",
+    "cors": "^2.8.6",
+    "express": "^5.2.1",
     "jszip": "^3.10.1",
     "papaparse": "^5.5.3",
     "stream-browserify": "^3.0.0",
     "tailwindcss": "^4.3.0",
     "tinymce": "^6.8.6",
     "vue": "beta",
-    "vue-router": "^5.0.4"
+    "vue-router": "^5.0.4",
+    "vuedraggable": "^4.1.0"
   },
   "devDependencies": {
     "@tsconfig/node24": "^24.0.4",

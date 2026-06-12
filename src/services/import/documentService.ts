@@ -20,15 +20,6 @@ export async function uploadImageAsDocument(image: ExtractedImage): Promise<Glpi
     }))
 
     formData.append('filename[0]', image.file, image.name)
-
-    for (const [key, val] of formData.entries()) {
-        if (val instanceof File) {
-            console.log(key, `→ File { name: ${val.name}, size: ${val.size}, type: ${val.type} }`)
-        } else {
-            console.log(key, `→`, val)
-        }
-    }
     const response = await glpiApi.postV1Raw<GlpiDocument>('/Document', formData)
-    console.log('GLPI response:', response.data)
     return response.data
 }

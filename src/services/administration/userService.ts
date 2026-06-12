@@ -42,9 +42,9 @@ export default class UserService {
         }
     }
     static createObject(user: Partial<User>): Object {
-        if (user.firstname && user.realname) {
+        if (user.firstname ||  user.realname) {
             return {
-                name: `${user.firstname.toLowerCase().trim()}.${user.realname.toLowerCase().trim()}`,
+                name: UserService.getName(user.realname?? '',user.firstname?? ''),
                 realname: user.realname,
                 firstname: user.firstname,
                 password: "glpi",
@@ -52,6 +52,20 @@ export default class UserService {
         }
         return {}
     }
+    static getName(realname:string,firstname:string): string {
+        const name = '';
+        if(!realname && firstname){
+            return firstname.toLowerCase().trim()
+        }
+        else if(realname && !firstname){
+            return realname.toLowerCase().trim()
+        }
+        else if (realname && firstname) {
+            return `${firstname? firstname.toLowerCase().trim() :''}.${realname ? realname.toLowerCase().trim():''}`
+        }
+        return ''
+    }
+
     async getAll(): Promise<Partial<User>[]> {
         let users: Partial<User>[] = []
         try {

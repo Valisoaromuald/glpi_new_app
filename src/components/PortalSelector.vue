@@ -4,7 +4,7 @@
     <div class="portal-wrapper">
 
       <div class="portal-header">
-        <div class="portal-brand">Mon Application</div>
+        <div class="portal-brand">Mon Application GLPI</div>
         <h1 class="portal-title">Choisissez votre portail</h1>
         <p class="portal-subtitle">Accédez à l'espace qui correspond à votre rôle</p>
       </div>

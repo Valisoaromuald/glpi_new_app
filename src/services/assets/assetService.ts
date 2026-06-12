@@ -2,6 +2,7 @@ import { glpiApi } from "@/api/GlpiApi"
 import type { Asset, BaseAsset } from "@/types/asset/asset";
 import type { AssetModel } from "@/types/asset/assetModel";
 import type { AssetType } from "@/types/asset/assetType";
+import type { PaginatedResult } from "@/types/pagination";
 import { DC_MODELS, translations, V1_ONLY_ITEMTYPES, type V1OnlyItemtype } from "@/utils/assetUtil";
 import PromiseUtil from "@/utils/promiseUtil";
 /**
@@ -9,8 +10,6 @@ import PromiseUtil from "@/utils/promiseUtil";
  * mais accessibles directement via /Assets/<type> ou via la v1.
  * À compléter selon vos besoins.
  */
-
-
 
 export default class AssetService {
     private readonly endpoint = `/Assets`
@@ -108,7 +107,7 @@ export default class AssetService {
      */
     public async getAssets<T = any>(
         itemtype: string,
-        isV1: boolean=false,
+        isV1: boolean = false,
         options: {
             filter?: string;       // RSQL, v2 uniquement
             range?: string;        // ex: "0-49"
@@ -125,8 +124,8 @@ export default class AssetService {
                 expand_dropdowns: options.expand_dropdowns ? 1 : 0,
                 ...options.params,
             };
-            if(itemtype.includes("/")){
-                itemtype=itemtype.replace("/","")
+            if (itemtype.includes("/")) {
+                itemtype = itemtype.replace("/", "")
             }
             const res = await glpiApi.getV1<T>(`/${itemtype}`, v1Params);
             return res.data;
@@ -246,18 +245,25 @@ export default class AssetService {
         })
     }
 
-    async getAllAssets(endpoints:string[]):Promise<Partial<BaseAsset>[]>{
-        let results :Partial<BaseAsset>[] = []
+    async getAllAssets(endpoints: string[]): Promise<Partial<BaseAsset>[]> {
         try {
-            for(let endpoint of endpoints){
-                let list :Partial<BaseAsset>[]= await this.getAssets(endpoint,true,{
-                    expand_dropdowns : true
-                })
-            list.forEach(el=> results.push(el))
-            }
+            // 1. On lance toutes les requêtes en parallèle
+            const requests = endpoints.map(endpoint =>
+                this.getAssets(endpoint, true, { expand_dropdowns: true })
+            );
+
+            // 2. On attend que toutes les promesses soient résolues
+            const lists = await Promise.all(requests);
+
+            // 3. On aplatit le tableau de tableaux et on trie
+            return lists
+                .flat()
+                .sort((a, b) => (b.id ?? 0) - (a.id ?? 0)); // Tri décroissant (du plus grand au plus petit)
+
         } catch (error) {
-            throw error
+            // Optionnel : ajouter un message d'erreur plus précis
+            console.error("Erreur lors de la récupération des assets:", error);
+            throw error;
         }
-        return results;
     }
 }   

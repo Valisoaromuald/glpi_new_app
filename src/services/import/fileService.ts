@@ -71,7 +71,7 @@ export class FileService {
 
     return {
       headers: this.trimStringArray(result.meta.fields ?? []),
-      rows: this.trimCsvRows(result.data),
+      rows: this.cleanCsvData(this.trimCsvRows(result.data)),
     };
   }
 
@@ -97,6 +97,25 @@ export class FileService {
 
     return result.data;
   }
+
+  cleanCsvData(rows: CsvRow[]): CsvRow[] {
+    return rows.map(row => {
+      const cleanedRow: CsvRow = {};
+
+      for (const [key, value] of Object.entries(row)) {
+        // On vérifie si la valeur est une string (toujours vrai avec votre type CsvRow, 
+        // mais utile si le type évolue)
+        if (typeof value === 'string') {
+          cleanedRow[key] = value.trim();
+        } else {
+          cleanedRow[key] = value;
+        }
+      }
+
+      return cleanedRow;
+    })
+  }
+
 
 
   static async extractImagesFromZip(
