@@ -54,6 +54,24 @@ const handleLogout = () => {
           </svg>
           Importer fichiers
         </router-link>
+
+        <AccordionMenu :title="'Ticket'">
+          <template #child>
+            <!-- Liste des tickets -->
+           <router-link to="/backoffice/tickets"
+                            class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-white hover:bg-blue-600 hover:text-white transition-colors"
+                            active-class="bg-blue-700 text-white font-medium">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+                            </svg>
+                            Liste
+                        </router-link>
+
+
+            
+          </template>
+        </AccordionMenu>
         <button @click="handleLogout"
           class="flex items-center gap-2 ml-4 px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-lg hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 transition-colors duration-200">
           <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
