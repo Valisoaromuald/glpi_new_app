@@ -5,6 +5,7 @@ export const frontofficeRoutes: RouteRecordRaw[] = [
     {
         path: '/frontoffice',
         name: 'Home',
+        component: () => import('@/layouts/FrontOfficeLayout.vue'),
         redirect: '/frontoffice/home',
         children: [
             {
@@ -17,7 +18,8 @@ export const frontofficeRoutes: RouteRecordRaw[] = [
                 path: 'ticket/form',
                 name: 'TicketForm',
                 component: () => import('@/views/assistance/TicketFormView.vue'),
-            }
+            },
+            
         ]
     },
 
