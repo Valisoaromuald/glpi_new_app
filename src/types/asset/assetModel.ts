@@ -13,5 +13,6 @@ export interface AssetModel {
     picture_rear: string,
     pictures: string[],
     date_creation: string,
-    date_mod: string
+    date_mod: string,
+    [key: string]: any 
 }

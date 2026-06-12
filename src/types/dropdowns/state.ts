@@ -1,18 +1,18 @@
 export interface State {
-    id: 0,
+    id: number,
     name: string,
     completename: string,
     comment: string,
     entity: {
-        id: 0,
+        id: number,
         name: string
     },
-    is_recursive: boolean,
+    is_recursive: boolean | number,
     parent: {
-        id: 0,
+        id: number,
         name: string
     },
-    level: 0,
+    level: number,
     is_visible_helpdesk: boolean,
     date_creation: string,
     date_mod: string,
@@ -38,4 +38,6 @@ export interface State {
         unmanaged: boolean,
         passivedcequipment: boolean
     }
+    entitites_id? : number,
+    [key: string]: any 
 }

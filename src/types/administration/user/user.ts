@@ -33,5 +33,6 @@ export interface User {
     end_date: string,
     nickname: string,
     substitution_start_date: string,
-    substitution_end_date: string
+    substitution_end_date: string,
+    [key:string]:any
   }

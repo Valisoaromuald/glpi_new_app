@@ -4,4 +4,5 @@ export interface Manufacturer {
     comment: string,
     date_creation: string,
     date_mod: string
+    [key: string]: any 
 }
