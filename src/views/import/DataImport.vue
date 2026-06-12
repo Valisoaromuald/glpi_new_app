@@ -69,10 +69,6 @@ async function handleImport(): Promise<void> {
     const file2: CsvResult | null = await importService.getRelevantCsvResult(files.value, FILE2_COLLUMN_NAMES)
     const file3: CsvResult | null = await importService.getRelevantCsvResult(files.value, FILE3_COLLUMN_NAMES)
     const file4: ImportedFile | null = importService.getZipFile(files.value);
-    console.log("file1: ",file1)
-    console.log("file2: ",file2)
-    console.log("file3: ",file3)
-    console.log("file4: ",file4)
     if (file1) {
       appendLog('[Fichier 1] Démarrage de l\'import...')
       const msg1 = await importService.importAssets(file1, onProgress)
