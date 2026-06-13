@@ -14,7 +14,6 @@ db.exec(`
     label TEXT DEFAULT '',
     label_mg TEXT DEFAULT ''
   );
-
   CREATE TABLE IF NOT EXISTS request_type (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     name TEXT not null DEFAULT 'incident'
@@ -27,7 +26,13 @@ db.exec(`
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         name TEXT not null default ''
     );
-    
+
+    CREATE TABLE IF NOT EXISTS user(
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      name TEXT DEFAULT '',
+      realname TEXT DEFAULT '',
+      firstname TEXT DEFAULT ''
+    );
   CREATE TABLE IF NOT EXISTS kanban_config (
     status_id INTEGER UNIQUE REFERENCES status(id) ON DELETE CASCADE,
     color TEXT DEFAULT '#ffffff'
@@ -36,8 +41,6 @@ db.exec(`
     (1, 'New', 'Vaovao'),
     (2, 'In Progress', 'Efa manao'),
     (3, 'Closed', 'Vita');
-
-    
 
   CREATE TABLE IF NOT EXISTS tickets (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -70,93 +73,93 @@ db.exec(`
 
 // --- Statuts (labels + couleurs + nb tickets) ---
 app.get('/api/kanban-config', (req, res) => {
-    const rows = db.prepare(`
+  const rows = db.prepare(`
     SELECT s.id, s.label, s.label_mg, k.color
     FROM status s
     JOIN kanban_config k ON k.status_id = s.id
     ORDER BY s.id
   `).all();
-    res.json(rows);
+  res.json(rows);
 });
 
 // Met à jour couleur ET label_mg pour un statut donné
 app.put('/api/kanban-config/:statusId', (req, res) => {
-    const { color, label_mg } = req.body.input;
-    const statusId = req.params.statusId;
+  const { color, label_mg } = req.body.input;
+  const statusId = req.params.statusId;
 
-    if (color !== undefined) {
-        db.prepare('UPDATE kanban_config SET color = ? WHERE status_id = ?')
-            .run(color, statusId);
-    }
-    if (label_mg !== undefined) {
-        db.prepare('UPDATE status SET label_mg = ? WHERE id = ?')
-            .run(label_mg, statusId);
-    }
-    res.json({ success: true });
+  if (color !== undefined) {
+    db.prepare('UPDATE kanban_config SET color = ? WHERE status_id = ?')
+      .run(color, statusId);
+  }
+  if (label_mg !== undefined) {
+    db.prepare('UPDATE status SET label_mg = ? WHERE id = ?')
+      .run(label_mg, statusId);
+  }
+  res.json({ success: true });
 });
 // --- Tickets ---
 app.get('/api/tickets', (req, res) => {
-    const tickets = db.prepare(`
+  const tickets = db.prepare(`
     SELECT t.*, s.label AS status_label, s.label_mg AS status_label_mg
     FROM tickets t
     JOIN status s ON s.id = t.statut_id
   `).all();
-    res.json(tickets);
+  res.json(tickets);
 });
 
 app.get('/api/tickets/:id', (req, res) => {
-    const ticket = db.prepare(`
+  const ticket = db.prepare(`
     SELECT t.*, s.label AS status_label, s.label_mg AS status_label_mg
     FROM tickets t
     JOIN status s ON s.id = t.statut_id
     WHERE t.id = ?
   `).get(req.params.id);
-    if (!ticket) return res.status(404).json({ error: 'Ticket introuvable' });
-    res.json(ticket);
+  if (!ticket) return res.status(404).json({ error: 'Ticket introuvable' });
+  res.json(ticket);
 });
 
 app.post('/api/tickets', (req, res) => {
-    console.log(req.body)
-    const { titre, description } = req.body.data;
-    const result = db.prepare(`
+  console.log(req.body)
+  const { titre, description } = req.body.data;
+  const result = db.prepare(`
     INSERT INTO tickets (titre, description, statut_id)
     VALUES (?, ?, 1)
   `).run(titre, description);
-    res.json({ id: result.lastInsertRowid });
+  res.json({ id: result.lastInsertRowid });
 });
 
 // Changer le statut d'un ticket (drag & drop)
 app.patch('/api/tickets/:id/status', (req, res) => {
-    const { statut_id } = req.body.input;
-    db.prepare('UPDATE tickets SET statut_id = ? WHERE id = ?')
-        .run(statut_id, req.params.id);
-    res.json({ success: true });
+  const { statut_id } = req.body.input;
+  db.prepare('UPDATE tickets SET statut_id = ? WHERE id = ?')
+    .run(statut_id, req.params.id);
+  res.json({ success: true });
 });
 
 // Récupérer la config (couleurs + labels)
 app.get('/api/kanban-config', (req, res) => {
-    const rows = db.prepare(`
+  const rows = db.prepare(`
     SELECT s.id, s.label, s.label_mg, k.color
     FROM status s
     JOIN kanban_config k ON k.status_id = s.id
     ORDER BY s.id
   `).all();
-    res.json(rows);
+  res.json(rows);
 });
 
 app.put('/api/kanban-config/:statusId', (req, res) => {
-    const { color, label_mg } = req.body.input;
-    const statusId = req.params.statusId;
+  const { color, label_mg } = req.body.input;
+  const statusId = req.params.statusId;
 
-    if (color !== undefined) {
-        db.prepare('UPDATE kanban_config SET color = ? WHERE status_id = ?')
-            .run(color, statusId);
-    }
-    if (label_mg !== undefined) {
-        db.prepare('UPDATE status SET label_mg = ? WHERE id = ?')
-            .run(label_mg, statusId);
-    }
-    res.json({ success: true });
+  if (color !== undefined) {
+    db.prepare('UPDATE kanban_config SET color = ? WHERE status_id = ?')
+      .run(color, statusId);
+  }
+  if (label_mg !== undefined) {
+    db.prepare('UPDATE status SET label_mg = ? WHERE id = ?')
+      .run(label_mg, statusId);
+  }
+  res.json({ success: true });
 });
 
 app.listen(3000, () => console.log('✅ Backend running on http://localhost:3000'));
