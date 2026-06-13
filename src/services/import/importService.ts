@@ -218,7 +218,7 @@ export default class ImportService {
                                     let endpointModelName: string = `${row["Item_Type"]}Model`;
                                     let inArray = this.isInArray(MODEL_NAMES_LIST, endpointModelName);
                                     if (inArray) {
-                                        let mdl: Partial<AssetModel> = { name: inArray }
+                                        let mdl: Partial<AssetModel> = { name:  row["Item_Type"]}
                                         let object: Object = AssetService.createModelObject(mdl, endpointModelName)
                                         assetModel = await glpiApi.postV1(endpointModelName, object)
                                         assetModel.id = assetModel.data.id
@@ -238,7 +238,7 @@ export default class ImportService {
                                     let endpointTypeName: string = `${row["Item_Type"]}Type`;
                                     let inArray = this.isInArray(TYPE_NAMES_LIST, endpointTypeName);
                                     if (inArray) {
-                                        let type: Partial<AssetType> = { name: inArray }
+                                        let type: Partial<AssetType> = { name: row["Item_Type"]}
                                         let object: Object = AssetService.createTypeObject(type)
                                         assetType = await glpiApi.postV1(endpointTypeName, object)
                                         assetType.id = assetType.data.id
@@ -391,7 +391,7 @@ export default class ImportService {
         }
 
         // Si le ticket est clos, GLPI exige aussi les dates de résolution/clôture
-        if (row["Status"]?.trim() === "Closed") {
+        if (row["Status"]?.trim(),"Closed") {
             const closeDate = this.formatDate(row)  // même logique que pour 'date'
 
             object = {
