@@ -7,7 +7,7 @@ import ImportService from '@/services/import/importService';
 import type { User } from '@/types/administration/user/user';
 import type { ImportedFile } from '@/types/file/importedFile';
 import { FILE1_COLLUMN_NAMES, FILE2_COLLUMN_NAMES, FILE3_COLLUMN_NAMES } from '@/utils/importUtil';
-import { computed, onMounted, ref } from 'vue';
+import { computed, ref } from 'vue';
 
 // ─── État global des fichiers sélectionnés ────────────────────────────────────
 
@@ -87,7 +87,6 @@ async function handleImport(): Promise<void> {
       appendLog(`[Fichier 3] ${msg3}`)
     }
     if (file4) {
-      console.log("mankato e: ",file4)
       appendLog('[Fichier 4] Démarrage de l\'import...')
       const msg3 = await importService.importImagesZip(file4, onProgress)
       appendLog(`[Fichier 4] ${msg3}`)
