@@ -3,5 +3,6 @@ import { ticketController } from "./ticket.controller";
 
 const router = Router();
 router.post('/',ticketController.create)
-router.put('/:ticketId/status', ticketController.updateStatus);
+router.get('/', ticketController.getAll);
+router.patch('/:ticketId/status', ticketController.updateStatus);
 export default router;
