@@ -21,6 +21,9 @@ import { uploadImageAsDocument } from "./documentService";
 import type { BaseAsset } from "@/types/asset/asset";
 import type { AssetType } from "@/types/asset/assetType";
 import type { TicketItem } from "@/types/assistance/ticketItem";
+import NewAppApi from "@/api/newAppApi";
+import type { ObjTicket } from "shared-types";
+import type { NewImport } from "@/types/import/newImport";
 export default class ImportService {
     isSimilarRow(row1: Record<string, any>, row2: Record<string, any>): boolean {
         const keys = Object.keys(row1);
@@ -478,6 +481,7 @@ export default class ImportService {
     async importTickets(csv: CsvResult, onProgress?: (resource: string, done: number, total: number) => void): Promise<string> {
         let message: string = ''
         let hasError = false;
+        const api = new NewAppApi()
         try {
             let treatedRows: CsvRow[] = []
             let rows: CsvRow[] = csv.rows
@@ -494,6 +498,11 @@ export default class ImportService {
                             if (Object.keys(ticketObject).length !== 0) {
                                 const response = await glpiApi.postV1('/Ticket', ticketObject)
                                 const ticketId: number = response.data.id
+                                const ObjTicket :ObjTicket ={
+                                    id: 0,
+                                    glpi_id:ticketId
+                                }
+                                api.post('tickets',ObjTicket)
                                 if (row['Items']) {
                                     // Étape 2 — Résoudre les équipements
                                     const items = await this.parseItems(row['Items'])
@@ -647,4 +656,5 @@ export default class ImportService {
 
         return `${done} image(s) importée(s) avec succès.`
     }
+    
 }
