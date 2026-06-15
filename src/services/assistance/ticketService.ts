@@ -1,4 +1,5 @@
 import { glpiApi } from "@/api/GlpiApi";
+import NewAppApi from "@/api/newAppApi";
 import type { Ticket } from "@/types/assistance/ticket";
 import type { LinkedElement } from "@/types/assistance/ticketForm";
 import type { TicketItem } from "@/types/assistance/ticketItem";
@@ -229,5 +230,22 @@ export default class TicketService {
             }))
     }
 
+    async updateStatus(
+        ticketId: number,
+        statutId: number,
+    ): Promise<void> {
+        const api = new NewAppApi();
 
+        await api.patch(`/tickets/${ticketId}/status`,
+            {
+                statut_id: statutId,
+            }
+        );
+
+        await glpiApi.patch(`/Ticket/${ticketId}`, {
+            input: {
+                status: statutId,
+            },
+        });
+    };
 }
