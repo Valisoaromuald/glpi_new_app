@@ -19,6 +19,7 @@
     "express": "^5.2.1",
     "jszip": "^3.10.1",
     "papaparse": "^5.5.3",
+    "shared-types": "file:shared-types",
     "stream-browserify": "^3.0.0",
     "tailwindcss": "^4.3.0",
     "tinymce": "^6.8.6",
