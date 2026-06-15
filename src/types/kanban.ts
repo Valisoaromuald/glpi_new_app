@@ -1,4 +1,3 @@
-import type { Ticket } from "./assistance/ticket";
 import type { IKanbanCard } from "./kanban/kanbanCard";
 
 export interface Column {
