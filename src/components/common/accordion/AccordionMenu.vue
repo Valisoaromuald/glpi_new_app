@@ -2,7 +2,8 @@
 import { ref } from 'vue'
 
 const props = defineProps<{
-  title: string
+  title: string,
+  hoverColor?:string
 }>()
 
 const isOpen = ref(false)
@@ -18,7 +19,7 @@ function toggle(): void {
     <!-- ── Header (bouton toggle) ── -->
     <button
       type="button"
-      class="w-full flex items-center justify-between px-3 py-2 rounded-lg text-sm font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-blue-700 transition-colors"
+      :class="`w-full flex items-center justify-between px-3 py-2 rounded-lg text-sm font-medium text-gray-700 dark:text-gray-200 hover:${hoverColor} transition-colors`"
       active-class="bg-blue-700 text-white font-medium"
       @click="toggle"
     >
