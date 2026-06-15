@@ -19,6 +19,10 @@ export const frontofficeRoutes: RouteRecordRaw[] = [
                 name: 'TicketForm',
                 component: () => import('@/views/assistance/TicketFormView.vue'),
             },
+            {
+              path:'kanban',
+              component: () => import('@/views/kanban/KanbanView.vue')
+            }
             
         ]
     },
