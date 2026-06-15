@@ -1,4 +1,5 @@
 import { glpiApi } from "@/api/GlpiApi";
+import NewAppApi from "@/api/newAppApi";
 import PromiseUtil from "@/utils/promiseUtil";
 import { RESOURCES_TO_RESET } from "@/utils/resetUtil";
 
@@ -40,6 +41,7 @@ export default class DataResetService {
     async resetDatabase(
         onProgress?: (resource: string, done: number, total: number) => void
     ): Promise<void> {
+        const newAppAPi = new NewAppApi()
         const pas: number = 2;
         for (const resource of RESOURCES_TO_RESET) {
             const allIds = await this.getAllIds(resource.endpoint);
@@ -67,5 +69,7 @@ export default class DataResetService {
                 onProgress?.(resource.name, 0, 0);
             }
         }
+        await newAppAPi.post('reset')
+        onProgress?.('sqlite reset',0,0)
     }
 }
