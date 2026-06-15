@@ -26,11 +26,12 @@ function handleCardMoved(payload: {
 <template>
 
     <div class="flex gap-4">
-
+        
         <kanban-column
             v-for="column in columns"
             :key="column.status"
             :column="column"
+            :useButton="column.status === 1"
             @cardMoved="handleCardMoved"
         />
 

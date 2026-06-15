@@ -14,7 +14,15 @@ import AssetService from '@/services/assets/assetService'
 import type { BaseAsset } from '@/types/asset/asset'
 import RichTextEditor from '../RichTextEditor.vue'
 const users = ref<Partial<User>[]>([])
-
+interface Props {
+    isForKanban?: boolean
+}
+const props = withDefaults(
+    defineProps<Props>(),
+    {
+        isForKanban: false
+    }
+)
 // ─── Formulaire ───────────────────────────────────────────────────────────────
 
 const defaultForm = (): Partial<Ticket> => ({
@@ -98,7 +106,7 @@ const resetForm = () => {
     Object.assign(form, defaultForm())
     elements.value = []
 }
-
+const messageInsertion = ref<string>('')
 const submitTicket = async () => {
     isSubmitting.value = true
     try {
@@ -108,7 +116,9 @@ const submitTicket = async () => {
         const items = await ticketService.getItemsByLinkedElements(elements.value)
         await importService.linkItemsToTicket(data.id, items)
         resetForm()
+        messageInsertion.value = "insertion reussie";
     } catch (error) {
+        messageInsertion.value = "erreur lors de l'insertion"
         console.error('Erreur création ticket :', error)
     } finally {
         isSubmitting.value = false
@@ -128,6 +138,7 @@ onMounted(async () => {
 <template>
     <main class="min-h-screen bg-gray-100 px-4 py-6">
         <div class="mx-auto max-w-4xl">
+
 
             <div class="mb-5">
                 <h1 class="text-2xl font-semibold text-gray-900">Créer un ticket</h1>
@@ -164,11 +175,17 @@ onMounted(async () => {
                         </div>
                         <div>
                             <label class="form-label">Status</label>
+
                             <select v-model="form.status!.id" class="form-input">
-                                <option v-for="[label, value] in Object.entries(TICKET_STATUS_MAP)" :key="value"
-                                    :value="value">
-                                    {{ label }}
-                                </option>
+                                <template v-if="!isForKanban">
+                                    <option v-for="[label, value] in Object.entries(TICKET_STATUS_MAP)" :key="value"
+                                        :value="value">
+                                        {{ label }}
+                                    </option>
+                                </template>
+                                <template v-else>
+                                    <option value="1">Nouveau</option>
+                                </template>
                             </select>
                         </div>
                         <div>
@@ -300,7 +317,8 @@ onMounted(async () => {
                                     <label class="form-label">Type</label>
                                     <select v-model="element.type" class="form-input" @change="selectElements(element)">
                                         <option v-for="endpoint in ASSET_ENDPOINTS" :key="endpoint.endpoint"
-                                            :value="endpoint.itemtype">{{ endpoint.french_translation }}</option>
+                                            :value="endpoint.itemtype">
+                                            {{ endpoint.french_translation }}</option>
                                     </select>
                                 </div>
                                 <div>
@@ -354,7 +372,10 @@ onMounted(async () => {
                         {{ isSubmitting ? 'Création...' : 'Créer le ticket' }}
                     </button>
                 </div>
-
+                <div v-show="messageInsertion.length !== 0">
+                    <p :style="{ color: messageInsertion === 'insertion reussie' ? 'green' : 'red' }">{{
+                        messageInsertion }}</p>
+                </div>
             </form>
         </div>
     </main>
