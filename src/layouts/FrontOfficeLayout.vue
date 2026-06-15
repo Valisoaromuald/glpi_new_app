@@ -40,6 +40,10 @@ import AccordionMenu from '@/components/common/accordion/AccordionMenu.vue';
                         </router-link>
                     </template>
                 </AccordionMenu>
+                <router-link to="/frontoffice/kanban"
+                class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-white hover:bg-blue-600 hover:text-white transition-colors">
+                    Kanban
+                </router-link>
             </nav>
         </aside>
 
