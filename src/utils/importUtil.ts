@@ -20,6 +20,13 @@ export const STATUS_MAP: Record<string, number> = {
     'Solved': 4,
     'Closed': 5
 }
+
+
+export const STATUS_MAP_KANBAN: Record<string, number> = {
+    'New': 1,
+    'In progress (assigned)': 2,
+    'Closed' : 3
+}
 export const PRIORITY_MAP: Record<string, number> = {
     'Very Low': 1,
     'Low': 2,
