@@ -265,7 +265,7 @@ class GlpiApi {
         return this.apiV2.put<T>(endpoint, { input: data });
     }
 
-    public async patch<T = any>(endpoint: string, data: any = {}): Promise<AxiosResponse<T>> {
+    public async    patch<T = any>(endpoint: string, data: any = {}): Promise<AxiosResponse<T>> {
         return this.apiV2.patch<T>(endpoint, { input: data });
     }
 
