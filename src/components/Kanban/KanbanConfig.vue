@@ -33,7 +33,6 @@
       <p v-if="error" class="text-red-600 text-sm">
         Une erreur est survenue lors de l'enregistrement.
       </p>
-      {{ saving }}
       <div class="flex justify-end">
         <button @click="saveAll" :disabled="saving"
           class="px-5 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50">
