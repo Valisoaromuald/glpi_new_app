@@ -22,8 +22,8 @@ import type { BaseAsset } from "@/types/asset/asset";
 import type { AssetType } from "@/types/asset/assetType";
 import type { TicketItem } from "@/types/assistance/ticketItem";
 import NewAppApi from "@/api/newAppApi";
-import type { ObjTicket } from "shared-types";
-import type { NewImport } from "@/types/import/newImport";
+import type { ITicketItem, ObjTicket } from "shared-types";
+import TicketItemService from "../assistance/ticketItemService";
 export default class ImportService {
     isSimilarRow(row1: Record<string, any>, row2: Record<string, any>): boolean {
         const keys = Object.keys(row1);
@@ -553,6 +553,7 @@ export default class ImportService {
         let treatedRows: CsvRow[] = []
         let rows: CsvRow[] = csv.rows
         let hasError: boolean = false; //flag
+        const newAppApi = new NewAppApi()
         try {
             for (let i = 0; i < rows.length; i++) {
                 const row = rows[i]
@@ -565,8 +566,17 @@ export default class ImportService {
                     let treatedRow: boolean = this.isAlreadyTreatedRow(row, treatedRows)
                     if (!treatedRow) {
                         let newTicketCostObject = TicketCostService.createObject(relatedTicket.id ?? 0, actionTime, effortCost, cost)
+                        let objTicket :ObjTicket= (await newAppApi.get<ObjTicket>(`tickets/${relatedTicket.id}`)).data
+                        const totalCost = TicketCostService.getTotalCost(newTicketCostObject)
                         if (Object.keys(newTicketCostObject).length !== 0) {
+                            const  ticket_items : ITicketItem[] = await TicketItemService.getAllByTicketId(relatedTicket.id??0)
                             await glpiApi.postV1('/TicketCost', newTicketCostObject)
+                            let data = {
+                                cost_type :"glpi_cost",
+                                cost: totalCost,
+                                items : ticket_items
+                            }
+                            await newAppApi.post(`tickets/${objTicket.id}/Item_Ticket`,data)
                             treatedRows.push(row)
                             if (!hasError) {
                                 onProgress?.('TicketsCosts', i + 1, rows.length)
