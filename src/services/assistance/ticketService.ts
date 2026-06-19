@@ -60,7 +60,7 @@ export default class TicketService {
             throw error;
         }
     }
-    async getById(id: number): Promise<Partial<Ticket>> {
+    static async getById(id: number): Promise<Partial<Ticket>> {
         const response = await glpiApi.getV1<Partial<Ticket>>(
             `/Ticket/${id}?expand_dropdowns=1`
         )
@@ -238,14 +238,13 @@ export default class TicketService {
 
         await api.patch(`/tickets/${ticketId}/status`,
             {
-                statut_id: statutId,
+
+                statut_id: statutId
             }
         );
 
-        await glpiApi.patch(`/Ticket/${ticketId}`, {
-            input: {
-                status: statutId,
-            },
+        await glpiApi.patchV1(`/Ticket/${ticketId}`, {
+            status: statutId,
         });
     };
 }
