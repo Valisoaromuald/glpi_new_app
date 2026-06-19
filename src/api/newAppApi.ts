@@ -10,7 +10,7 @@ export default class NewAppApi {
     }
 
     public async post<T = any, D = any>(endpoint: string, data: D = {} as D): Promise<AxiosResponse<T>> {
-        return this.api.post<T>(endpoint, { input: data });
+        return this.api.post<T>(endpoint, { data });
     }
 
     public async put<T = any, D = any>(endpoint: string, data: D = {} as D): Promise<AxiosResponse<T>> {
@@ -18,7 +18,7 @@ export default class NewAppApi {
     }
 
     public async patch<T = any, D = any>(endpoint: string, data: D = {} as D): Promise<AxiosResponse<T>> {
-        return this.api.patch<T>(endpoint, { input: data });
+        return this.api.patch<T>(endpoint, { data });
     }
 
     public async delete<T = any>(endpoint: string, params: any = {}): Promise<AxiosResponse<T>> {
