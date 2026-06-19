@@ -51,8 +51,12 @@ export const backofficeRoutes: RouteRecordRaw[] = [
             {
               path:'config',
               component: () => import('@/views/kanban/KanbanConfigView.vue')
-            }
+            },
           ]
+        },
+        {
+          path:'newImport',
+          component : () => import('@/components/import/NewImport.vue')
         }
     ]
   }

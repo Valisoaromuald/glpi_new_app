@@ -22,6 +22,10 @@ export const frontofficeRoutes: RouteRecordRaw[] = [
             {
               path:'kanban',
               component: () => import('@/views/kanban/KanbanView.vue')
+            },
+            {
+                path: 'ticketCost/list',
+                component:()=> import('@/components/dropdowns/ticketCost/TicketCostTotalList.vue')
             }
             
         ]
