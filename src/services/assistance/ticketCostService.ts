@@ -1,5 +1,8 @@
 import { glpiApi } from "@/api/GlpiApi"
+import NewAppApi from "@/api/newAppApi";
+import type { BaseAsset } from "@/types/asset/asset";
 import type { TicketCost } from "@/types/assistance/ticketCost";
+import type { ITicketCostGrouped } from "shared-types";
 
 export default class TicketCostService {
     static createObject(ticketId: number, actionTime: number, timeCost: number,costFixed: number): Partial<TicketCost> {
@@ -53,5 +56,32 @@ export default class TicketCostService {
             result+=Number(cost_material)
         }
         return result;
+    }
+    static async getDetailsPerItemByCategory(category:string){
+        try {
+            const newAppApi = new NewAppApi()
+            const retour =  (await newAppApi.get<Partial<ITicketCostGrouped>[]>(`ticketCosts/${category}`));
+            
+            const detailsPerItemByCategory =  retour.data;
+            const itemsByCategory = (await glpiApi.getV1<Partial<BaseAsset[]>>(`${category}?expand_dropdowns=true`)).data
+            for(let i=0; i  < detailsPerItemByCategory.length;i++){
+                const detail  = detailsPerItemByCategory[i];
+                 const glpiItem = itemsByCategory.find(item=> item?.id=== detail?.item_id);
+                 if(detail && glpiItem){
+                    detail["name"] = glpiItem.name
+                    const modelKey = Object.keys(glpiItem).find(key => key.includes("model"))
+                    if(modelKey){
+                        console.log("modelKey: ",glpiItem[modelKey])
+                        detail["model"] = glpiItem[modelKey]
+                    }
+                    else{
+                        detail["model"] = "N/A"
+                    }
+                 }
+            }
+            return detailsPerItemByCategory
+        } catch (error) {
+            throw error;
+        }
     }
 }

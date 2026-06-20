@@ -28,5 +28,23 @@ export const ticketCostController = {
             next(error)
         }
     },
-    
+    getDetailsPerItemByCategory(req: Request, res: Response, next: NextFunction) {
+        try {
+            const category_name = req.params.category
+
+            if(!category_name){
+                res.status(400).json({ error: 'aucune categorie fournie pour ' });
+            }
+            if(typeof category_name == "string"){
+                const rows = ticketCostService.getDetailsPerItemByCategory(category_name);
+                res.status(200).json(rows);
+            }
+            else{
+                res.status(400).json({ error: 'le nom de la categorie doit etre une chaine de caractere' });
+            }
+            
+        } catch (error) {
+            next(error);
+        }
+    }
 }
