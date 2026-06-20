@@ -1,4 +1,4 @@
-export interface ObjTicket{
-    id : number,
-    glpi_id:number
-}
+    export interface ObjTicket{
+        id : number,
+        glpi_id:number
+    }

@@ -7,6 +7,7 @@ import type { IKanbanColumn } from "@/types/kanban/KanBanColumn.ts";
 import Modal from "../modal/Modal.vue";
 const {
     columns,
+    status,
     closingValue,
     rollBackValue,
     isClosed,
@@ -19,7 +20,7 @@ const {
     moveCard,
     insertCost
 } = useKanban();
-
+let langue = ref<string>('anglais(par defaut)')
 onMounted(load);
 
 const reopenMode = ref<number>(1)
@@ -35,7 +36,7 @@ async function handleCardMoved(payload: {
     if (payload.destinationStatus === 2 && payload.card.ticketStatus === 3) {
         isRollBack.value = true
     }
-    if(movementAccepted){
+    if (movementAccepted) {
         moveCard(
             payload.card,
             payload.destinationStatus
@@ -48,18 +49,56 @@ function onUpdateCards(column: Partial<IKanbanColumn>, newCards: IKanbanCard[]) 
 }
 async function handleReopen() {
     let cost = 0;
-        const totalRecentCosts = await getTotalCosts(ticketId.value,Number(reopenMode.value));
-        cost = (totalRecentCosts / 100) * rollBackValue.value;
-        insertCost(cost, 'reopening', ticketId.value);
-        movementAccepted.value = true
+    const totalRecentCosts = await getTotalCosts(ticketId.value, Number(reopenMode.value));
+    cost = (totalRecentCosts / 100) * rollBackValue.value;
+    insertCost(cost, 'reopening', ticketId.value);
+    movementAccepted.value = true
+}
+function changeLanguageVersion(){
+    if(langue.value === "anglais"){
+        columns.value.forEach(element => {
+            const relevantStatus = status.value.find(s=>s.label === element.title || s.label_mg=== element.title)
+            if(relevantStatus){
+                element.title = relevantStatus.label
+            }
+        });
+    }
+    else{
+        columns.value.forEach(element => {
+            const relevantStatus = status.value.find(s=>s.label === element.title || s.label_mg=== element.title)
+            if(relevantStatus){
+                element.title = relevantStatus.label_mg
+            }
+        });
+    }
 }
 </script>
 
 <template>
 
+    <div class="flex flex-col gap-1 mb-10">
+        <label for="statut" class="text-xs font-semibold text-gray-500 uppercase tracking-wide">Langue de statut</label>
+        <div class="relative">
+            <span class="absolute inset-y-0 left-3 flex items-center text-gray-400">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+                    stroke="currentColor" class="size-4">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                        d="m10.5 21 5.25-11.25L21 21m-9-3h7.5M3 5.621a48.474 48.474 0 0 1 6-.371m0 0c1.12 0 2.233.038 3.334.114M9 5.25V3m3.334 2.364C11.176 10.658 7.69 15.08 3 17.502m9.334-12.138c.896.061 1.785.147 2.666.257m-4.589 8.495a18.023 18.023 0 0 1-3.827-5.802" />
+                </svg>
+            </span>
+            <select id="statut" v-model="langue" @change="changeLanguageVersion"
+                class="w-80  pl-9 pr-3 py-2.5 text-sm border border-gray-200 rounded-xl bg-gray-50 focus:bg-white focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all duration-200 placeholder:text-gray-300">
+                <option :key="1" :value="'anglais'">anglais(par defaut)</option>
+                <option :key="2" :value="'malagasy'">
+                    malagasy
+                </option>
+            </select>
+        </div>
+    </div>
     <div class="flex gap-4">
-        <kanban-column v-for="column in columns" :key="column.status" :column="column" :useButton="column.status === 1" :movement-allowed="movementAccepted"
-            @cardMoved="handleCardMoved" @update:cards="(newCards) => onUpdateCards(column, newCards)" />
+        <kanban-column v-for="column in columns" :key="column.status" :column="column" :useButton="column.status === 1"
+            :movement-allowed="movementAccepted" @cardMoved="handleCardMoved"
+            @update:cards="(newCards) => onUpdateCards(column, newCards)" />
     </div>
     <Modal v-model="isClosed">
         <template #header>Fermeture d'un ticket</template>

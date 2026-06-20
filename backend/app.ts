@@ -5,6 +5,7 @@ import { errorHandler } from './middleware/error.middleware';
 import kanbanRoutes from './modules/kanban/kanban.routes';
 import resetRoutes from './modules/reset/reset.routes';
 import ticketCostRoutes from './modules/ticketCost/ticketCost.routes';
+import statusRoutes from './modules/status/status.routes';
 
 
 
@@ -15,6 +16,7 @@ app.use(express.json());
 app.use('/api/tickets', ticketRoutes);
 app.use('/api/ticketCosts', ticketCostRoutes);
 app.use('/api/kanban-config', kanbanRoutes);
+app.use('/api/status', statusRoutes);
 
 app.use('/api/reset', resetRoutes);
 app.use(errorHandler);

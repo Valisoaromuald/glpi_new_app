@@ -8,12 +8,13 @@ import type { Ticket } from "@/types/assistance/ticket";
 import type { IKanbanCard } from "@/types/kanban/kanbanCard";
 import type { IKanbanColumn } from "@/types/kanban/KanBanColumn";
 import { STATUS_MAP_KANBAN } from "@/utils/importUtil";
-import type { ITicketCost, ITicketItem, KanbanConfigRow, ObjTicket } from "shared-types";
+import type { IStatus, ITicketCost, ITicketItem, KanbanConfigRow, ObjTicket } from "shared-types";
 import { ref } from "vue";
 
 
 export function useKanban() {
     let columns = ref<Partial<IKanbanColumn>[]>([])
+    let status = ref<IStatus[]>([])
     const ticketService = new TicketService()
     const isClosingSumbit = ref<boolean>(false)
     const ticketId = ref<number>(0)
@@ -51,14 +52,21 @@ export function useKanban() {
     function buidKanbanColumns(statuses: number[], kanbanCards: Partial<IKanbanCard>[], kanbanConfig: KanbanConfigRow[], cardsRequired: boolean = true): Partial<IKanbanColumn>[] {
         return statuses.map(s => buidKanbanColumn(s, kanbanCards, kanbanConfig))
     }
+    async function loadStatus(){
+        try {
+            const json = await api.get<IStatus[]>('status')
+            status.value = json.data
+        } catch (error) {
+            throw error;
+        }
+    }
     async function load() {
         try {
             let tickets = await ticketService.getAll()
             let kanbanConfig = await api.get<KanbanConfigRow[]>('kanban-config');
-
             let kanbanCards = buildKanbanCards(tickets)
             columns.value = buidKanbanColumns([1, 2, 3], kanbanCards, kanbanConfig.data)
-
+            loadStatus()
         } catch (error) {
             throw error;
         }
@@ -203,6 +211,7 @@ export function useKanban() {
 
     return {
         columns,
+        status,
         ticketId,
         isClosed,
         isRollBack,
