@@ -48,7 +48,7 @@ function formatDate(date: string | null | undefined): string {
 onMounted(async () => {
   const id = Number(route.params.id)
   const [t, actors] = await Promise.all([
-    ticketService.getById(id),
+    TicketService.getById(id),
     ticketService.getActors(id),
   ])
   ticket.value    = t
