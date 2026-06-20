@@ -93,7 +93,6 @@ export function useKanban() {
         let array: ITicketCost[] = []
         try {
             let objTicket: ObjTicket = (await newAppApi.get<ObjTicket>(`tickets/${ticketId}`)).data
-            console.log("reopen Mode dans import: ",reopenMode)
             if (reopenMode === 1) {
                 const { data: ticketCosts } = (await newAppApi.get<{ data: ITicketCost[] }>(
                     `tickets/${objTicket.id}/costs/recent`
