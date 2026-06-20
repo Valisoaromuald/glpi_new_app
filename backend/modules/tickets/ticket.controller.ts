@@ -139,11 +139,10 @@ export const ticketController = {
         } catch (error) {
             next(error)
         }
-    },
+    },  
     getTotalCostsForEachCategory(req: Request, res: Response, next: NextFunction) {
         try {
             const rows = ticketCostService.getTotalCostsForEachCategory();
-            console.log("rows: ", rows)
             res.status(200).json({ data: rows });
         } catch (error) {
             next(error);
