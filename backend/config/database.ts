@@ -24,6 +24,8 @@ CREATE TABLE IF NOT EXISTS ticket_cost(
    cost_type TEXT,
    cost NUMERIC(20,4)  ,
    category TEXT,
+   creation_date TEXT NOT NULL,
+   item_id INTEGER NOT NULL,
    ticket_id INTEGER NOT NULL,
    PRIMARY KEY(id),
    FOREIGN KEY(ticket_id) REFERENCES ticket(id)
@@ -57,3 +59,11 @@ INSERT OR IGNORE INTO kanban_config (id, color, status_id) VALUES
   ('2', '#F59E0B', 2),
   ('3', '#10B981', 3);
 `);
+
+function shutdown() {
+  db.close();
+  process.exit(0);
+}
+
+process.on('SIGINT', shutdown);
+process.on('SIGTERM', shutdown);
