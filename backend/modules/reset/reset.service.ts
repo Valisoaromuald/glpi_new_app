@@ -35,6 +35,8 @@ export const resetService = {
          cost NUMERIC(20,4),
          category TEXT,
          ticket_id INTEGER NOT NULL,
+         item_id INTEGER NOT NULL,
+         creation_date TEXT NOT NULL,
          PRIMARY KEY(id),
          FOREIGN KEY(ticket_id) REFERENCES ticket(id)
       );
