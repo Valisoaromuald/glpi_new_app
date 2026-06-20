@@ -136,7 +136,8 @@ function handlePaginationUpdate(newStart: number, newEnd: number) {
 
             <!-- Numéro de série -->
             <div class="flex flex-col gap-1">
-              <label for="serial" class="text-xs font-semibold text-gray-500 uppercase tracking-wide">Numéro de série</label>
+              <label for="serial" class="text-xs font-semibold text-gray-500 uppercase tracking-wide">Numéro de
+                série</label>
               <div class="relative">
                 <span class="absolute inset-y-0 left-3 flex items-center text-gray-400">
                   <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -152,7 +153,8 @@ function handlePaginationUpdate(newStart: number, newEnd: number) {
 
             <!-- Fabricant -->
             <div class="flex flex-col gap-1">
-              <label for="manufacturer" class="text-xs font-semibold text-gray-500 uppercase tracking-wide">Fabricant</label>
+              <label for="manufacturer"
+                class="text-xs font-semibold text-gray-500 uppercase tracking-wide">Fabricant</label>
               <div class="relative">
                 <span class="absolute inset-y-0 left-3 flex items-center text-gray-400">
                   <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -184,7 +186,8 @@ function handlePaginationUpdate(newStart: number, newEnd: number) {
 
             <!-- Localisation -->
             <div class="flex flex-col gap-1">
-              <label for="location" class="text-xs font-semibold text-gray-500 uppercase tracking-wide">Localisation</label>
+              <label for="location"
+                class="text-xs font-semibold text-gray-500 uppercase tracking-wide">Localisation</label>
               <div class="relative">
                 <span class="absolute inset-y-0 left-3 flex items-center text-gray-400">
                   <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -222,22 +225,26 @@ function handlePaginationUpdate(newStart: number, newEnd: number) {
           </div>
 
           <!-- Boutons d'actions -->
-          <div class="flex justify-end gap-3 pt-2 border-t border-gray-100">
+          <div class="flex flex-col sm:flex-row justify-end gap-3 pt-2 border-t border-gray-100">
             <button type="reset"
-              class="flex items-center gap-2 px-5 py-2.5 rounded-xl border border-gray-200 text-sm font-medium text-gray-600 hover:bg-gray-50 hover:border-gray-300 active:scale-95 transition-all duration-150">
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                  d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+              class="flex items-center justify-center gap-2 w-full sm:w-auto px-5 py-2.5 rounded-xl border border-gray-200 text-sm font-medium text-gray-600 hover:bg-gray-50 hover:border-gray-300 active:scale-95 transition-all duration-150">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+                stroke="currentColor" class="size-4">
+                <path stroke-linecap="round" stroke-linejoin="round"
+                  d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99" />
               </svg>
+
               Réinitialiser
             </button>
 
             <button type="submit"
-              class="flex items-center gap-2 px-6 py-2.5 rounded-xl bg-blue-600 text-sm font-semibold text-white hover:bg-blue-700 active:scale-95 shadow-sm shadow-blue-200 transition-all duration-150">
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                  d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              class="flex items-center justify-center gap-2 w-full sm:w-auto px-6 py-2.5 rounded-xl bg-blue-600 text-sm font-semibold text-white hover:bg-blue-700 active:scale-95 shadow-sm shadow-blue-200 transition-all duration-150">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+                stroke="currentColor" class="size-4">
+                <path stroke-linecap="round" stroke-linejoin="round"
+                  d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
               </svg>
+
               Rechercher
             </button>
           </div>
@@ -260,15 +267,19 @@ function handlePaginationUpdate(newStart: number, newEnd: number) {
         <div class="overflow-x-auto">
           <table class="min-w-full">
             <template v-if="filteredAssets.length > 0">
-              <thead class="bg-gray-50 border-b border-gray-100">
+              <thead class="bg-blue-800 border-b border-gray-100">
                 <tr>
-                  <th class="px-5 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Nom</th>
-                  <th class="px-5 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Modèle</th>
-                  <th class="px-5 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Numéro de série</th>
-                  <th class="px-5 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Fabricant</th>
-                  <th class="px-5 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Utilisateur</th>
-                  <th class="px-5 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Localisation</th>
-                  <th class="px-5 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Statut</th>
+                  <th class="px-5 py-3 text-left text-xs font-semibold text-white uppercase tracking-wider">Nom</th>
+                  <th class="px-5 py-3 text-left text-xs font-semibold text-white uppercase tracking-wider">Modèle</th>
+                  <th class="px-5 py-3 text-left text-xs font-semibold text-white uppercase tracking-wider">Numéro de
+                    série</th>
+                  <th class="px-5 py-3 text-left text-xs font-semibold text-white uppercase tracking-wider">Fabricant
+                  </th>
+                  <th class="px-5 py-3 text-left text-xs font-semibold text-white uppercase tracking-wider">Utilisateur
+                  </th>
+                  <th class="px-5 py-3 text-left text-xs font-semibold text-white uppercase tracking-wider">Localisation
+                  </th>
+                  <th class="px-5 py-3 text-left text-xs font-semibold text-white uppercase tracking-wider">Statut</th>
                 </tr>
               </thead>
               <tbody class="divide-y divide-gray-50">
@@ -296,12 +307,8 @@ function handlePaginationUpdate(newStart: number, newEnd: number) {
         </div>
 
         <!-- Pagination -->
-        <Pagination
-          v-if="filteredAssets.length > 0"
-          :total="filteredAssets.length"
-          :start="start"
-          @update:limit="handlePaginationUpdate"
-        />
+        <Pagination v-if="filteredAssets.length > 0" :total="filteredAssets.length" :start="start"
+          @update:limit="handlePaginationUpdate" />
       </div>
     </div>
   </div>
