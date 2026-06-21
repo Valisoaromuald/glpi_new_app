@@ -71,7 +71,6 @@ export default class TicketCostService {
                     detail["name"] = glpiItem.name
                     const modelKey = Object.keys(glpiItem).find(key => key.includes("model"))
                     if(modelKey){
-                        console.log("modelKey: ",glpiItem[modelKey])
                         detail["model"] = glpiItem[modelKey]
                     }
                     else{
