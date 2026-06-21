@@ -1,5 +1,5 @@
 // src/api/GlpiApi.ts
-import axios, { type AxiosInstance, type AxiosResponse, type InternalAxiosRequestConfig } from "axios";
+import axios, { type AxiosInstance, type AxiosRequestConfig, type AxiosResponse, type InternalAxiosRequestConfig } from "axios";
 import { useRedirect } from "../composables/useRedirect";
 import { useGlpiScope } from "../composables/useGlpiScope";
 
@@ -265,7 +265,7 @@ class GlpiApi {
         return this.apiV2.put<T>(endpoint, { input: data });
     }
 
-    public async    patch<T = any>(endpoint: string, data: any = {}): Promise<AxiosResponse<T>> {
+    public async patch<T = any>(endpoint: string, data: any = {}): Promise<AxiosResponse<T>> {
         return this.apiV2.patch<T>(endpoint, { input: data });
     }
 
@@ -277,9 +277,8 @@ class GlpiApi {
     //  MÉTHODES V1  (session_token)
     // ════════════════════════════════════════════════════════
 
-    public async getV1<T = any>(endpoint: string, params: any = {}): Promise<AxiosResponse<T>> {
-
-        return this.apiV1.get<T>(endpoint, { params });
+    public async getV1<T = any>(endpoint: string, params: any = {}, config?: AxiosRequestConfig): Promise<AxiosResponse<T>> {
+        return this.apiV1.get<T>(endpoint, { params, ...config })
     }
     public async postV1Raw<T = any>(endpoint: string, formData: FormData): Promise<AxiosResponse<T>> {
         return this.apiV1.post<T>(endpoint, formData)
@@ -310,6 +309,19 @@ class GlpiApi {
 
     public async deleteV1<T = any>(endpoint: string, params: any = {}): Promise<AxiosResponse<T>> {
         return this.apiV1.delete<T>(endpoint, { params });
+    }
+    // Dans GlpiApi ou un helper
+    public async getImageAsBase64(url: string): Promise<string | null> {
+        try {
+            const response = await this.apiV1.get<Blob>(url, { responseType: 'blob' })
+            return new Promise((resolve) => {
+                const reader = new FileReader()
+                reader.onloadend = () => resolve(reader.result as string)
+                reader.readAsDataURL(response.data)
+            })
+        } catch {
+            return null
+        }
     }
 }
 

@@ -269,6 +269,7 @@ function handlePaginationUpdate(newStart: number, newEnd: number) {
             <template v-if="filteredAssets.length > 0">
               <thead class="bg-blue-800 border-b border-gray-100">
                 <tr>
+                  <th class="px-5 py-3 text-left text-xs font-semibold text-white uppercase tracking-wider">Image</th>
                   <th class="px-5 py-3 text-left text-xs font-semibold text-white uppercase tracking-wider">Nom</th>
                   <th class="px-5 py-3 text-left text-xs font-semibold text-white uppercase tracking-wider">Modèle</th>
                   <th class="px-5 py-3 text-left text-xs font-semibold text-white uppercase tracking-wider">Numéro de

@@ -1,10 +1,12 @@
 import { glpiApi } from "@/api/GlpiApi"
-import type { Asset, BaseAsset } from "@/types/asset/asset";
+import type { Asset, AssetLink, BaseAsset } from "@/types/asset/asset";
 import type { AssetModel } from "@/types/asset/assetModel";
 import type { AssetType } from "@/types/asset/assetType";
 import type { PaginatedResult } from "@/types/pagination";
 import { DC_MODELS, translations, V1_ONLY_ITEMTYPES, type V1OnlyItemtype } from "@/utils/assetUtil";
 import PromiseUtil from "@/utils/promiseUtil";
+import DocumentItemService from "../document/DocumentItemService";
+import { CATEGORIES } from "@/utils/importUtil";
 /**
  * Types d'assets non exposés dans GET /Assets/ de la v2
  * mais accessibles directement via /Assets/<type> ou via la v1.
@@ -249,21 +251,35 @@ export default class AssetService {
         try {
             // 1. On lance toutes les requêtes en parallèle
             const requests = endpoints.map(endpoint =>
-                this.getAssets(endpoint, true, { expand_dropdowns: true })
-            );
+                this.getAssets<Partial<BaseAsset>>(endpoint, true, { expand_dropdowns: true })
+            )
 
-            // 2. On attend que toutes les promesses soient résolues
-            const lists = await Promise.all(requests);
+            // 2. On attend que toutes les promesses soient résolues et on aplatit
+            const lists = (await Promise.all(requests)).flat()
 
-            // 3. On aplatit le tableau de tableaux et on trie
-            return lists
-                .flat()
-                .sort((a, b) => (b.id ?? 0) - (a.id ?? 0)); // Tri décroissant (du plus grand au plus petit)
+            // 3. On récupère tous les documents une seule fois
+            const documents = await DocumentItemService.getAll()
+
+            // 4. On associe chaque document à son asset
+            for (const asset of lists) {
+                const document = documents.find(d => {
+                    const computerLink = d.links?.find((l: AssetLink) => CATEGORIES.includes(l.rel))
+                    return computerLink?.href.endsWith(`/${asset.id}`)
+                })
+                if (document) {
+                    const documentLink = document.links?.find((l: AssetLink) => l.rel === 'Document')
+                    const documentId = documentLink?.href.split('/').pop()
+                    const imageUrl = `Document/${documentId}?alt=media`
+                    asset['image'] = await glpiApi.getImageAsBase64(imageUrl)
+                }
+            }
+
+            // 5. Tri décroissant
+            return lists.sort((a, b) => (b.id ?? 0) - (a.id ?? 0))
 
         } catch (error) {
-            // Optionnel : ajouter un message d'erreur plus précis
-            console.error("Erreur lors de la récupération des assets:", error);
-            throw error;
+            console.error("Erreur lors de la récupération des assets:", error)
+            throw error
         }
     }
 }   

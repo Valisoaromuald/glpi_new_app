@@ -13,6 +13,7 @@ function display(value: any): string {
 </script>
 <template>
   <tr class="*:text-gray-900 *:first:font-medium">
+    <td class="px-3 py-2 whitespace-nowrap"><img v-if="asset.image" :src="`${asset.image}`"/><p v-else>{{ "Aucune" }}</p></td>
     <td class="px-3 py-2 whitespace-nowrap">{{ display(asset.name) }}</td>
     <td class="px-3 py-2 whitespace-nowrap">{{ display(asset.computermodels_id ?? asset.phonemodels_id ?? asset.monitormodels_id) }}</td>
     <td class="px-3 py-2 whitespace-nowrap">{{ display(asset.otherserial) }}</td>

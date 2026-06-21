@@ -14,3 +14,8 @@ export interface BaseAsset {
     comment: string,
     [key: string]: any 
 }
+
+export interface AssetLink{
+    rel:string,
+    href:string
+}
