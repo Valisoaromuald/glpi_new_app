@@ -36,7 +36,6 @@ function onUpdateCards(column: Partial<IKanbanColumn>, newCards: IKanbanCard[]) 
 function handleCardPending(payload: { card: IKanbanCard; destinationStatus: number }) {
     ticketId.value = payload.card.ticketId
     pendingPayload.value = payload
-    console.log("etat vaovao: ", pendingPayload.value)
     if (payload.destinationStatus === 3) isClosed.value = true
     if (payload.destinationStatus === 2 && payload.card.ticketStatus === 3) isRollBack.value = true
 }
@@ -51,7 +50,6 @@ async function handleReopen() {
         if (pendingPayload.value) {
             moveCard(pendingPayload.value.card, pendingPayload.value.destinationStatus)
             pendingPayload.value = null
-            await load()
         }
     } catch (error) {
         console.error(error)
