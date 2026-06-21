@@ -13,7 +13,9 @@ const {
     isClosed,
     isRollBack,
     isClosingSumbit,
+    isRollBackSubmit,
     ticketId,
+    movementMessage,
     deleteRecentTicketCosts,
     getTotalCosts,
     load,
@@ -24,49 +26,85 @@ let langue = ref<string>('anglais(par defaut)')
 onMounted(load);
 
 const reopenMode = ref<number>(1)
-const movementAccepted = ref<boolean>(false)
-async function handleCardMoved(payload: {
-    card: IKanbanCard;
-    destinationStatus: number;
-}) {
-    ticketId.value = payload.card.ticketId
-    if (payload.destinationStatus === 3) {
-        isClosed.value = true
-    }
-    if (payload.destinationStatus === 2 && payload.card.ticketStatus === 3) {
-        isRollBack.value = true
-    }
-    if (movementAccepted) {
-        moveCard(
-            payload.card,
-            payload.destinationStatus
-        );
-        movementAccepted.value = false
-    }
+const pendingPayload = ref<{ card: IKanbanCard; destinationStatus: number } | null>(null)
+function handleCardMoved(payload: { card: IKanbanCard; destinationStatus: number }) {
+    moveCard(payload.card, payload.destinationStatus)
 }
 function onUpdateCards(column: Partial<IKanbanColumn>, newCards: IKanbanCard[]) {
     column.cards = newCards;
 }
-async function handleReopen() {
-    let cost = 0;
-    const totalRecentCosts = await getTotalCosts(ticketId.value, Number(reopenMode.value));
-    cost = (totalRecentCosts / 100) * rollBackValue.value;
-    insertCost(cost, 'reopening', ticketId.value);
-    movementAccepted.value = true
+function handleCardPending(payload: { card: IKanbanCard; destinationStatus: number }) {
+    ticketId.value = payload.card.ticketId
+    pendingPayload.value = payload
+    console.log("etat vaovao: ", pendingPayload.value)
+    if (payload.destinationStatus === 3) isClosed.value = true
+    if (payload.destinationStatus === 2 && payload.card.ticketStatus === 3) isRollBack.value = true
 }
-function changeLanguageVersion(){
-    if(langue.value === "anglais"){
+async function handleReopen() {
+    try {
+        isRollBackSubmit.value = true
+        const totalRecentCosts = await getTotalCosts(ticketId.value, Number(reopenMode.value))
+        const cost = (totalRecentCosts / 100) * rollBackValue.value
+        await insertCost(cost, 'reopening', ticketId.value)
+        movementMessage.value = "<p class='text-green-600 font-semibold'> l'insertion du cout de reouverture reussie</p>"
+
+        if (pendingPayload.value) {
+            moveCard(pendingPayload.value.card, pendingPayload.value.destinationStatus)
+            pendingPayload.value = null
+            await load()
+        }
+    } catch (error) {
+        console.error(error)
+        movementMessage.value = "<p class='text-red-600 font-semibold'>erreur lors de l'insertion du cout de reouverture</p>"
+    }
+    finally {
+        isRollBackSubmit.value = false
+    }
+}
+
+async function handleTicketClose() {
+    try {
+        isClosingSumbit.value = true
+        await insertCost(closingValue.value, 'super_cost', ticketId.value)
+        movementMessage.value = "<p class='text-green-600 font-semibold'> l'insertion du super cout reussie</p>"
+        if (pendingPayload.value) {
+            moveCard(pendingPayload.value.card, pendingPayload.value.destinationStatus)
+            pendingPayload.value = null
+        }
+    } catch (error) {
+        console.error(error)
+        movementMessage.value = "<p class='text-red-600 font-semibold'>erreur lors de l'insertion du super cout</p>"
+    }
+    finally {
+        isClosingSumbit.value = false
+    }
+}
+
+async function handleDelete() {
+    try {
+        await deleteRecentTicketCosts(ticketId.value);
+        movementMessage.value = "<p class='text-green-600 font-semibold'> suppression du dernier super cout reussie</p>"
+    } catch (error) {
+        console.error(error)
+        movementMessage.value = "<p class='text-red-600 font-semibold'>erreur lors de  la supression  du dernier super cout</p>"
+    }
+    finally {
+        isRollBackSubmit.value = false
+    }
+}
+function changeLanguageVersion() {
+    if (langue.value === "anglais") {
         columns.value.forEach(element => {
-            const relevantStatus = status.value.find(s=>s.label === element.title || s.label_mg=== element.title)
-            if(relevantStatus){
+            const relevantStatus = status.value.find(s => s.label === element.title || s.label_mg === element.title)
+            if (relevantStatus) {
                 element.title = relevantStatus.label
             }
         });
     }
-    else{
+    else {
         columns.value.forEach(element => {
-            const relevantStatus = status.value.find(s=>s.label === element.title || s.label_mg=== element.title)
-            if(relevantStatus){
+            const relevantStatus = status.value.find(s => s.label === element.title || s.label_mg === element.title)
+            if (relevantStatus) {
                 element.title = relevantStatus.label_mg
             }
         });
@@ -97,7 +135,7 @@ function changeLanguageVersion(){
     </div>
     <div class="flex gap-4">
         <kanban-column v-for="column in columns" :key="column.status" :column="column" :useButton="column.status === 1"
-            :movement-allowed="movementAccepted" @cardMoved="handleCardMoved"
+            @cardMoved="handleCardMoved" @cardPending="handleCardPending"
             @update:cards="(newCards) => onUpdateCards(column, newCards)" />
     </div>
     <Modal v-model="isClosed">
@@ -108,11 +146,11 @@ function changeLanguageVersion(){
                 <input v-model="closingValue" type="number" step="0.01" required class="form-input" />
             </div>
             <div class="mt-2">
-                <button type="submit" class="btn-primary" @click="insertCost(closingValue, 'super_cost', ticketId)"
-                    :disabled="isClosingSumbit">
+                <button type="submit" class="btn-primary" @click="handleTicketClose" :disabled="isClosingSumbit">
                     {{ isClosingSumbit ? 'Fermeture...' : 'Fermer le ticket' }}
                 </button>
             </div>
+            <div v-if="movementMessage" v-html="movementMessage"></div>
         </form>
     </Modal>
     <Modal v-model="isRollBack">
@@ -145,17 +183,18 @@ function changeLanguageVersion(){
                     <path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8" />
                     <path d="M21 3v5h-5" />
                 </svg>
-                Réouverture
+                {{ isRollBackSubmit ? 'Reouverture...' : 'Reouvrir le ticket' }}
             </button>
-            <button @click="deleteRecentTicketCosts(ticketId)"
+            <button @click="handleDelete"
                 class="flex items-center gap-1.5 px-2.5 py-1 text-sm bg-red-500 hover:bg-red-600 text-white font-medium rounded-lg transition-colors">
                 <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none"
                     stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <path d="M18 6 6 18" />
                     <path d="M6 6l12 12" />
                 </svg>
-                Annulation
+                {{ isRollBackSubmit ? 'Annulation...' : 'Annuler le ticket' }}
             </button>
+            <div v-if="movementMessage" v-html="movementMessage"></div>
         </template>
     </Modal>
 </template>

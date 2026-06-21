@@ -17,11 +17,13 @@ export function useKanban() {
     let status = ref<IStatus[]>([])
     const ticketService = new TicketService()
     const isClosingSumbit = ref<boolean>(false)
+    const isRollBackSubmit = ref<boolean>(false)
     const ticketId = ref<number>(0)
     const closingValue = ref<number>(0)
     const rollBackValue = ref<number>(0)
     const isClosed = ref<boolean>(false)
     const isRollBack = ref<boolean>(false)
+    const movementMessage = ref<string>('')
     function buildKanbanCard(ticket: Partial<Ticket>): Partial<IKanbanCard> {
         if (Object.keys(ticket).length === 0) {
             return {}
@@ -52,7 +54,7 @@ export function useKanban() {
     function buidKanbanColumns(statuses: number[], kanbanCards: Partial<IKanbanCard>[], kanbanConfig: KanbanConfigRow[], cardsRequired: boolean = true): Partial<IKanbanColumn>[] {
         return statuses.map(s => buidKanbanColumn(s, kanbanCards, kanbanConfig))
     }
-    async function loadStatus(){
+    async function loadStatus() {
         try {
             const json = await api.get<IStatus[]>('status')
             status.value = json.data
@@ -73,156 +75,161 @@ export function useKanban() {
     }
     const api = new NewAppApi();
 
-    async function moveCard(card: IKanbanCard, destinationStatus: number) {
+        async function moveCard(card: IKanbanCard, destinationStatus: number) {
+            const oldStatus = card.ticketStatus
 
-        const oldStatus = card.ticketStatus
+            // 1. Retirer la carte de sa colonne d'origine
+            const sourceColumn = columns.value.find(c => c.status === oldStatus)
+            const destColumn = columns.value.find(c => c.status === destinationStatus)
 
-        // 1. update optimiste (UI immédiate)
-        card.ticketStatus = destinationStatus
-        try {
+            if (!sourceColumn || !destColumn) return
 
-            // 2. appel API
-            await ticketService.updateStatus(
-                card.ticketId,
-                destinationStatus
-            )
+            // 2. Update optimiste
+            card.ticketStatus = destinationStatus
+            sourceColumn.cards = sourceColumn.cards?.filter(c => c.ticketId !== card.ticketId) ?? []
+            destColumn.cards = [...(destColumn.cards ?? []), card]
 
-        } catch (error) {
-
-            // 3. rollback si erreur
-            card.ticketStatus = oldStatus
-
-            throw error
+            try {
+                // 3. Appel API
+                await ticketService.updateStatus(card.ticketId, destinationStatus)
+            } catch (error) {
+                // 4. Rollback si erreur
+                card.ticketStatus = oldStatus
+                destColumn.cards = destColumn.cards?.filter(c => c.ticketId !== card.ticketId) ?? []
+                sourceColumn.cards = [...(sourceColumn.cards ?? []), card]
+                throw error
+            }
         }
-    }
-    async function getTotalCosts(ticketId: number, reopenMode: number = 1): Promise<number> {
-        let result: number = 0
-        const newAppApi = new NewAppApi()
-        let array: ITicketCost[] = []
-        try {
-            let objTicket: ObjTicket = (await newAppApi.get<ObjTicket>(`tickets/${ticketId}`)).data
-            if (reopenMode === 1) {
-                const { data: ticketCosts } = (await newAppApi.get<{ data: ITicketCost[] }>(
-                    `tickets/${objTicket.id}/costs/recent`
-                )).data;
-                array = ticketCosts
-            }
-            if (reopenMode === 2) {
-                const { data: ticketCosts } = (await newAppApi.get<{ data: ITicketCost[] }>(
-                    `tickets/${objTicket.id}/costs/first`
-                )).data;
-                array = ticketCosts
-            }
-            if (reopenMode === 3 || reopenMode=== 4) {
-                const { data: ticketCosts } = (await newAppApi.get<{ data: ITicketCost[] }>(
-                    `tickets/${objTicket.id}/costs/all`
-                )).data;
-                array = ticketCosts
-            }
-            for (let recentTicketCost of array) {
-                result += Number(recentTicketCost.cost)
-            }
-            if (reopenMode === 3) {
-                const ticket_items: ITicketItem[] = await TicketItemService.getAllByTicketId(ticketId)
-                result /= (array.length / ticket_items.length)
-            }
-        } catch (error) {
-            throw error
-        }
-        return result
-    }
-    async function insertCost(cost: number, cost_type: string, ticket_id: number): Promise<void> {
-        isClosingSumbit.value = true
-        try {
+        async function getTotalCosts(ticketId: number, reopenMode: number = 1): Promise<number> {
+            let result: number = 0
             const newAppApi = new NewAppApi()
-            const ticket_items: ITicketItem[] = await TicketItemService.getAllByTicketId(ticket_id)
-            let objTicket: ObjTicket = (await newAppApi.get<ObjTicket>(`tickets/${ticket_id}`)).data
-            let data = {
-                cost_type: cost_type,
-                cost: cost,
-                items: ticket_items
+            let array: ITicketCost[] = []
+            try {
+                let objTicket: ObjTicket = (await newAppApi.get<ObjTicket>(`tickets/${ticketId}`)).data
+                if (reopenMode === 1) {
+                    const { data: ticketCosts } = (await newAppApi.get<{ data: ITicketCost[] }>(
+                        `tickets/${objTicket.id}/costs/recent`
+                    )).data;
+                    array = ticketCosts
+                }
+                if (reopenMode === 2) {
+                    const { data: ticketCosts } = (await newAppApi.get<{ data: ITicketCost[] }>(
+                        `tickets/${objTicket.id}/costs/first`
+                    )).data;
+                    array = ticketCosts
+                }
+                if (reopenMode === 3 || reopenMode === 4) {
+                    const { data: ticketCosts } = (await newAppApi.get<{ data: ITicketCost[] }>(
+                        `tickets/${objTicket.id}/costs/all`
+                    )).data;
+                    array = ticketCosts
+                }
+                for (let recentTicketCost of array) {
+                    result += Number(recentTicketCost.cost)
+                }
+                if (reopenMode === 3) {
+                    const ticket_items: ITicketItem[] = await TicketItemService.getAllByTicketId(ticketId)
+                    result /= (array.length / ticket_items.length)
+                }
+            } catch (error) {
+                throw error
             }
-            await newAppApi.post(`tickets/${objTicket.id}/Item_Ticket`, data)
-            isClosingSumbit.value = false
-
-        } catch (error) {
-            throw error;
+            return result
         }
+        async function insertCost(cost: number, cost_type: string, ticket_id: number): Promise<void> {
+            isClosingSumbit.value = true
+            try {
+                const newAppApi = new NewAppApi()
+                const ticket_items: ITicketItem[] = await TicketItemService.getAllByTicketId(ticket_id)
+                let objTicket: ObjTicket = (await newAppApi.get<ObjTicket>(`tickets/${ticket_id}`)).data
+                let data = {
+                    cost_type: cost_type,
+                    cost: cost,
+                    items: ticket_items
+                }
+                await newAppApi.post(`tickets/${objTicket.id}/Item_Ticket`, data)
+                isClosingSumbit.value = false
 
-    }
-    async function deleteRecentTicketCosts(ticket_id: number): Promise<number> {
-        let result: number = 0
-        let newAppApi = new NewAppApi()
-        try {
-            let objTicket: ObjTicket = (await newAppApi.get<ObjTicket>(`tickets/${ticket_id}`)).data
-            result = (await newAppApi.delete<number>(`tickets/${objTicket.id}/costs/recent`)).data
-        } catch (error) {
-            throw error;
+            } catch (error) {
+                throw error;
+            }
+
         }
-        return result;
-    }
-    async function importTransaction(csv: CsvResult, onProgress?: (resource: string, done: number, total: number) => void) {
-        let message: string = ''
-        let treatedRows: CsvRow[] = []
-        let rows: CsvRow[] = csv.rows
-        let hasError: boolean = false; //flag
-        const importService = new ImportService()
-        try {
-            for (let i = 0; i < rows.length; i++) {
-                const row = rows[i]
-                if (row) {
-                    let num_ticket: number = row["Ref_Ticket"] ? Number(row["Ref_Ticket"]) : 0
-                    let relatedTicket = await TicketService.getByExternalId(String(num_ticket))
-                    let mvt: string = row["Mvt"] ?? ''
-                    let valeur: number = importService.parseStringToFloat(row["Valeur"])
-                    let treatedRow: boolean = importService.isAlreadyTreatedRow(row, treatedRows)
-                    if (!treatedRow) {
-                        if (mvt.trim().toLowerCase() === "close" && valeur>=0) {
-                            await insertCost(valeur, "super_cost", relatedTicket.id ?? 0)
-                        }
-                        if (mvt.trim().toLowerCase() === "open" && valeur>=0) {
-                            const reopenMode = row["Mode"] ? Number(row["Mode"]) : 1
-                            console.log("mod de reouverture:",reopenMode)
-                            const totalRecentCosts = await getTotalCosts(relatedTicket.id ?? 0, reopenMode);
-                            const cost = (totalRecentCosts / 100) * valeur;
-                            await insertCost(cost, "reopening", relatedTicket.id ?? 0)
+        async function deleteRecentTicketCosts(ticket_id: number): Promise<number> {
+            let result: number = 0
+            let newAppApi = new NewAppApi()
+            try {
+                let objTicket: ObjTicket = (await newAppApi.get<ObjTicket>(`tickets/${ticket_id}`)).data
+                result = (await newAppApi.delete<number>(`tickets/${objTicket.id}/costs/recent`)).data
+            } catch (error) {
+                throw error;
+            }
+            return result;
+        }
+        async function importTransaction(csv: CsvResult, onProgress?: (resource: string, done: number, total: number) => void) {
+            let message: string = ''
+            let treatedRows: CsvRow[] = []
+            let rows: CsvRow[] = csv.rows
+            let hasError: boolean = false; //flag
+            const importService = new ImportService()
+            try {
+                for (let i = 0; i < rows.length; i++) {
+                    const row = rows[i]
+                    if (row) {
+                        let num_ticket: number = row["Ref_Ticket"] ? Number(row["Ref_Ticket"]) : 0
+                        let relatedTicket = await TicketService.getByExternalId(String(num_ticket))
+                        let mvt: string = row["Mvt"] ?? ''
+                        let valeur: number = importService.parseStringToFloat(row["Valeur"])
+                        let treatedRow: boolean = importService.isAlreadyTreatedRow(row, treatedRows)
+                        if (!treatedRow) {
+                            if (mvt.trim().toLowerCase() === "close" && valeur >= 0) {
+                                await insertCost(valeur, "super_cost", relatedTicket.id ?? 0)
+                            }
+                            if (mvt.trim().toLowerCase() === "open" && valeur >= 0) {
+                                const reopenMode = row["Mode"] ? Number(row["Mode"]) : 1
+                                console.log("mod de reouverture:", reopenMode)
+                                const totalRecentCosts = await getTotalCosts(relatedTicket.id ?? 0, reopenMode);
+                                const cost = (totalRecentCosts / 100) * valeur;
+                                await insertCost(cost, "reopening", relatedTicket.id ?? 0)
 
+                            }
+                            if (mvt.trim().toLowerCase() === "cancel") {
+                                console.log(relatedTicket.id)
+                                await deleteRecentTicketCosts(relatedTicket.id ?? 0)
+                            }
+                            treatedRows.push(row)
                         }
-                        if (mvt.trim().toLowerCase() === "cancel") {
-                            console.log(relatedTicket.id)
-                            await deleteRecentTicketCosts(relatedTicket.id ?? 0)
-                        }
-                        treatedRows.push(row)
+                    }
+                    if (!hasError) {
+                        onProgress?.('Ticket_cost', i + 1, rows.length)
                     }
                 }
-                if (!hasError) {
-                    onProgress?.('Ticket_cost', i + 1, rows.length)
-                }
+                message = "Import transaction termine"
+            } catch (error) {
+                hasError = true
+                console.error("erreur :", error)
+                message = "une erreur est survenue lors d l'import du fichier de transaction"
+                throw error
             }
-            message = "Import transaction termine"
-        } catch (error) {
-            hasError = true
-            console.error("erreur :", error)
-            message = "une erreur est survenue lors d l'import du fichier de transaction"
-            throw error
+            return message
         }
-        return message
-    }
 
-    return {
-        columns,
-        status,
-        ticketId,
-        isClosed,
-        isRollBack,
-        closingValue,
-        rollBackValue,
-        isClosingSumbit,
-        getTotalCosts,
-        deleteRecentTicketCosts,
-        importTransaction,
-        load,
-        moveCard,
-        insertCost
+        return {
+            columns,
+            status,
+            ticketId,
+            isClosed,
+            isRollBack,
+            closingValue,
+            rollBackValue,
+            isClosingSumbit,
+            isRollBackSubmit,
+            movementMessage,
+            getTotalCosts,
+            deleteRecentTicketCosts,
+            importTransaction,
+            load,
+            moveCard,
+            insertCost
+        }
     }
-}

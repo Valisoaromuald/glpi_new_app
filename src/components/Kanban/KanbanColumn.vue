@@ -11,11 +11,9 @@ import TicketForm from "../assistance/TicketForm.vue";
 interface Props {
     column: Partial<IKanbanColumn>;
     useButton?: boolean
-    movementAllowed?: boolean
 }
 const props = withDefaults(defineProps<Props>(), {
-    useButton: false,
-    movementAllowed: true
+    useButton: false
 });
 
 const showModal = ref<boolean>(false)
@@ -23,6 +21,7 @@ const showModal = ref<boolean>(false)
 const emit = defineEmits<{
     (e: "cardMoved", payload: { card: IKanbanCard; destinationStatus: number }): void;
     (e: "update:cards", cards: IKanbanCard[]): void;
+    (e: "cardPending", payload: { card: IKanbanCard; destinationStatus: number }): void;
 }>();
 
 // computed avec getter/setter : Draggable peut "écrire" dedans
@@ -31,21 +30,27 @@ const cards = computed<IKanbanCard[]>({
         return (props.column.cards ?? []) as IKanbanCard[];
     },
     set(value) {
-        // if (props.movementAllowed) {
-            emit("update:cards", value);
-        // }
+        emit("update:cards", value);
     }
 });
+function onMove(event: any): boolean {
+    const card: IKanbanCard = event.draggedContext.element
+    const destinationStatus = Number(event.to.dataset.status)
+    if (destinationStatus === 3 || (destinationStatus === 2 && card.ticketStatus === 3)) {
+        emit("cardPending", { card, destinationStatus })
+        return false
+    }
 
+    return true
+}
 function onChange(event: DraggableChangeEvent) {
 
     if (!event.added) return;
-    // if (props.movementAllowed) {
-        emit("cardMoved", {
-            card: event.added.element,
-            destinationStatus: props.column.status ?? 0
-        });
-    // }
+    emit("cardMoved", {
+        card: event.added.element,
+        destinationStatus: props.column.status ?? 0
+    });
+
 }
 </script>
 
@@ -58,8 +63,8 @@ function onChange(event: DraggableChangeEvent) {
             </span>
         </div>
 
-        <Draggable v-model="cards" group="kanban" item-key="ticketId" animation="200" @change="onChange"
-            class="flex flex-col gap-2 min-h-25">
+        <Draggable v-model="cards" group="kanban" item-key="ticketId" animation="200" @change="onChange" :move="onMove"
+            :data-status="column.status" class="flex flex-col gap-2 min-h-25">
             <template #item="{ element }">
                 <KanbanCardComponent :card="element" />
             </template>
