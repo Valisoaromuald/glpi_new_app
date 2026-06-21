@@ -3,6 +3,7 @@ import { computed } from 'vue';
 
 const props = defineProps<{
   logs: string
+  title: string
 }>()
 
 interface LogLine {
@@ -41,7 +42,7 @@ const parsedLines = computed<LogLine[]>(() => {
       <span class="w-3 h-3 rounded-full bg-red-500"></span>
       <span class="w-3 h-3 rounded-full bg-yellow-500"></span>
       <span class="w-3 h-3 rounded-full bg-green-500"></span>
-      <span class="ml-3 text-xs text-zinc-500 tracking-widest uppercase">glpi reset — terminal</span>
+      <span class="ml-3 text-xs text-zinc-500 tracking-widest uppercase">{{ props.title }}</span>
     </div>
 
     <!-- Terminal body -->
