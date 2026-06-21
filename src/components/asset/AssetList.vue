@@ -7,9 +7,18 @@ import AssetRow from './AssetRow.vue';
 import Pagination from '../common/pagination/Pagination.vue';
 import type { State } from '@/types/dropdowns/state.ts';
 import StateService from '@/services/dropdowns/stateService.ts';
+import LocationService from '@/services/dropdowns/locationService.ts';
+import type { Location } from '@/types/dropdowns/location.ts';
+import type { User } from '@/types/administration/user/user.ts';
+import UserService from '@/services/administration/userService.ts';
+import ManufacturerService from '@/services/management/manufacturerService.ts';
+import type { Manufacturer } from '@/types/dropdowns/manufacturer.ts';
 
 const allAssets = ref<Partial<BaseAsset>[]>([])
 const states = ref<Partial<State>[]>([])
+const locations = ref<Partial<Location>[]>([])
+const users = ref<Partial<User>[]>([])
+const manufacturers = ref<Partial<Manufacturer>[]>([])
 const filteredAssets = ref<Partial<BaseAsset>[]>([])
 
 const itemsPerPage = 5
@@ -53,9 +62,15 @@ const handleSearch = () => {
 onMounted(async () => {
   const assetService: AssetService = new AssetService()
   const stateService: StateService = new StateService()
+  const locationService: LocationService = new LocationService()
+  const userService: UserService = new UserService()
+  const manufacturerService: ManufacturerService = new ManufacturerService()
   const endpoints = ASSET_ENDPOINTS.map(ae => ae.endpoint)
   allAssets.value = await assetService.getAllAssets(endpoints)
   states.value = await stateService.getAll()
+  locations.value = await locationService.getAll()
+  users.value = await userService.getAll()
+  manufacturers.value = await manufacturerService.getAll()
   filteredAssets.value = [...allAssets.value]
 })
 
@@ -162,9 +177,13 @@ function handlePaginationUpdate(newStart: number, newEnd: number) {
                       d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
                   </svg>
                 </span>
-                <input id="manufacturer" v-model="searchCriteria.manufacturer" type="text"
-                  class="w-full pl-9 pr-3 py-2.5 text-sm border border-gray-200 rounded-xl bg-gray-50 focus:bg-white focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all duration-200 placeholder:text-gray-300"
-                  placeholder="ex. Asus, Dell, HP..." />
+                <select id="statut" v-model="searchCriteria.location"
+                  class="w-full pl-9 pr-3 py-2.5 text-sm border border-gray-200 rounded-xl bg-gray-50 focus:bg-white focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all duration-200 placeholder:text-gray-300">
+                  <option value="">Tous</option>
+                  <option v-for="manufacturer in manufacturers" :key="manufacturer.id" :value="manufacturer.name">
+                    {{ manufacturer.name }}
+                  </option>
+                </select>
               </div>
             </div>
 
@@ -178,9 +197,13 @@ function handlePaginationUpdate(newStart: number, newEnd: number) {
                       d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                   </svg>
                 </span>
-                <input id="user" v-model="searchCriteria.user" type="text"
-                  class="w-full pl-9 pr-3 py-2.5 text-sm border border-gray-200 rounded-xl bg-gray-50 focus:bg-white focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all duration-200 placeholder:text-gray-300"
-                  placeholder="ex. Rakoto" />
+                <select id="statut" v-model="searchCriteria.location"
+                  class="w-full pl-9 pr-3 py-2.5 text-sm border border-gray-200 rounded-xl bg-gray-50 focus:bg-white focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all duration-200 placeholder:text-gray-300">
+                  <option value="">Tous</option>
+                  <option v-for="user in users" :key="user.id" :value="user.name">
+                    {{ user.username }}
+                  </option>
+                </select>
               </div>
             </div>
 
@@ -197,9 +220,14 @@ function handlePaginationUpdate(newStart: number, newEnd: number) {
                       d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                   </svg>
                 </span>
-                <input id="location" v-model="searchCriteria.location" type="text"
-                  class="w-full pl-9 pr-3 py-2.5 text-sm border border-gray-200 rounded-xl bg-gray-50 focus:bg-white focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all duration-200 placeholder:text-gray-300"
-                  placeholder="ex. Administration" />
+
+                <select id="statut" v-model="searchCriteria.location"
+                  class="w-full pl-9 pr-3 py-2.5 text-sm border border-gray-200 rounded-xl bg-gray-50 focus:bg-white focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all duration-200 placeholder:text-gray-300">
+                  <option value="">Tous</option>
+                  <option v-for="location in locations" :key="location.id" :value="location.name">
+                    {{ location.name }}
+                  </option>
+                </select>
               </div>
             </div>
           </div>

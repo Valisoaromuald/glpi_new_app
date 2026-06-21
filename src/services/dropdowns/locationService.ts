@@ -1,4 +1,5 @@
 import { glpiApi } from "@/api/GlpiApi";
+import type { Location } from "@/types/dropdowns/location";
 import PromiseUtil from "@/utils/promiseUtil";
 
 export default class LocationService {
@@ -52,4 +53,18 @@ export default class LocationService {
         }
         return{}
     }
+    async getAll(): Promise<Partial<Location>[]> {
+            try {
+                const endpoint = `/Location?expand_dropdowns=1`;
+                const response = await glpiApi.getV1<Partial<Location>[]>(endpoint);
+                if (response.data) {
+                    return response.data;
+                }
+                return [];
+            } catch (error) {
+                // Le "throw error" dans un bloc catch simple est redondant, 
+                // mais si tu prévois d'ajouter des logs ici, tu peux le laisser.
+                throw error;
+            }
+        }
 }
