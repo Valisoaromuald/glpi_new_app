@@ -4,11 +4,13 @@ import NewAppApi from '@/api/newAppApi'
 import type { ITicketCostGrouped } from 'shared-types';
 import { useRouter } from 'vue-router';
 import { useTicketCost } from '@/composables/useTicketCost'
+import { useFormatter } from '@/composables/useFormatter';
 
 const router = useRouter()
 const props = defineProps<{ ticketId: number }>()
 const newAppApi = new NewAppApi()
 const { rows, isLoading, error, glpiCostTotal, superCostTotal, reopeningCostTotal, globalTotal, computeTotals } = useTicketCost()
+const {formatNumber} = useFormatter()
 
 async function loadGroupedCosts() {
     isLoading.value = true
@@ -52,11 +54,11 @@ onMounted(loadGroupedCosts)
                     </tr>
                     <template v-else>
                         <tr v-for="row in rows" class="border-b border-gray-100">
-                            <td class="px-3 py-2">{{ row.category }}</td>
-                            <td class="px-3 py-2">{{ row.super_cost }}</td>
-                            <td class="px-3 py-2">{{ row.glpi_cost }}</td>
-                            <td class="px-3 py-2">{{ row.reopening }}</td>
-                            <td class="px-3 py-2 font-semibold">{{ row.total }}</td>
+                            <td class="px-3 py-2">{{ row.category}}</td>
+                            <td class="px-3 py-2">{{ formatNumber(row.super_cost??0,3) }}</td>
+                            <td class="px-3 py-2">{{ formatNumber(row.glpi_cost??0,3) }}</td>
+                            <td class="px-3 py-2">{{ formatNumber(row.reopening??0,3) }}</td>
+                            <td class="px-3 py-2 font-semibold">{{ formatNumber(row.total??0,3) }}</td>
                             <td class="px-3 py-2 font-semibold">
                                 <button
                                     class="flex items-center gap-1 bg-green-400 hover:bg-green-500 text-white text-sm font-semibold px-3 py-1.5 rounded-lg transition-colors cursor-pointer"
@@ -74,10 +76,10 @@ onMounted(loadGroupedCosts)
                         </tr>
                         <tr>
                             <td class="px-3 py-2 font-bold">Total</td>
-                            <td class="px-3 py-2">{{ superCostTotal }}</td>
-                            <td class="px-3 py-2">{{ glpiCostTotal }}</td>
-                            <td class="px-3 py-2">{{ reopeningCostTotal }}</td>
-                            <td class="px-3 py-2 font-semibold">{{ globalTotal }}</td>
+                            <td class="px-3 py-2">{{ formatNumber(superCostTotal,3) }}</td>
+                            <td class="px-3 py-2">{{ formatNumber(glpiCostTotal,3) }}</td>
+                            <td class="px-3 py-2">{{ formatNumber(reopeningCostTotal,3) }}</td>
+                            <td class="px-3 py-2 font-semibold">{{ formatNumber(globalTotal,3) }}</td>
                         </tr>
                     </template>
                     <tr v-if="rows.length === 0 && !error">
