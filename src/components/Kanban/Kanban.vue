@@ -50,6 +50,8 @@ async function handleReopen() {
         if (pendingPayload.value) {
             moveCard(pendingPayload.value.card, pendingPayload.value.destinationStatus)
             pendingPayload.value = null
+                isRollBack.value = false
+                movementMessage.value = ''
         }
     } catch (error) {
         console.error(error)
@@ -68,6 +70,8 @@ async function handleTicketClose() {
         if (pendingPayload.value) {
             moveCard(pendingPayload.value.card, pendingPayload.value.destinationStatus)
             pendingPayload.value = null
+            isClosed.value = false
+            movementMessage.value = ''
         }
     } catch (error) {
         console.error(error)

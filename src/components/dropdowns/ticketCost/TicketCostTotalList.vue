@@ -7,7 +7,6 @@ import { useTicketCost } from '@/composables/useTicketCost'
 import { useFormatter } from '@/composables/useFormatter';
 
 const router = useRouter()
-const props = defineProps<{ ticketId: number }>()
 const newAppApi = new NewAppApi()
 const { rows, isLoading, error, glpiCostTotal, superCostTotal, reopeningCostTotal, globalTotal, computeTotals } = useTicketCost()
 const {formatNumber} = useFormatter()
@@ -17,7 +16,7 @@ async function loadGroupedCosts() {
     error.value = null
     try {
         const { data } = (await newAppApi.get<{ data: ITicketCostGrouped[] }>(
-            `tickets/${props.ticketId}/costs/grouped`)).data
+            `tickets/costs/grouped`)).data
         rows.value = data
         computeTotals()
     } catch (err) {
