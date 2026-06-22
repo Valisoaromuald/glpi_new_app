@@ -171,14 +171,14 @@ onMounted(async () => {
       <div v-else class="overflow-x-auto">
         <table class="w-full text-sm">
           <thead>
-            <tr class="bg-gray-50 text-left">
-              <th class="px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide w-12">#</th>
-              <th class="px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">Titre</th>
-              <th class="px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide w-32">Statut</th>
-              <th class="px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide w-28">Priorité</th>
-              <th class="px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">Demandeurs</th>
-              <th class="px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">Assignés</th>
-              <th class="px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide w-24">Date</th>
+            <tr class="bg-gray-950  text-left ">
+              <th class="px-4 py-3 text-xs font-semibold text-white uppercase tracking-wide w-12">#</th>
+              <th class="px-4 py-3 text-xs font-semibold text-white uppercase tracking-wide">Titre</th>
+              <th class="px-4 py-3 text-xs font-semibold text-white uppercase tracking-wide w-32">Statut</th>
+              <th class="px-4 py-3 text-xs font-semibold text-white uppercase tracking-wide w-28">Priorité</th>
+              <th class="px-4 py-3 text-xs font-semibold text-white uppercase tracking-wide">Demandeurs</th>
+              <th class="px-4 py-3 text-xs font-semibold text-white uppercase tracking-wide">Assignés</th>
+              <th class="px-4 py-3 text-xs font-semibold text-white uppercase tracking-wide w-24">Date</th>
             </tr>
           </thead>
           <tbody class="divide-y divide-gray-100">
