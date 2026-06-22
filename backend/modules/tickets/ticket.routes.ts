@@ -10,6 +10,6 @@ router.patch('/:ticketId/status', ticketController.updateStatus);
 router.get('/:ticketId/costs/recent',ticketController.getAllRecentCosts)
 router.get('/:ticketId/costs/first',ticketController.getFirsts)
 router.get('/:ticketId/costs/all',ticketController.getAllById)
-router.get('/:ticketId/costs/grouped',ticketController.getTotalCostsForEachCategory)
+router.get('/costs/grouped',ticketController.getTotalCostsForEachCategory)
 router.delete('/:ticketId/costs/recent',ticketController.deleteAllRecentTicketCosts)
 export default router;
